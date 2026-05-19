@@ -276,7 +276,7 @@ export default function InteractiveStack({
                   {index === 0 && (
                     <motion.div 
                       layoutId="top-indicator"
-                      className={`absolute -left-32 flex items-center gap-3 ${displayStack.length === 1 ? 'top-1' : ''}`}
+                      className={`absolute -left-36 flex items-center gap-3 ${displayStack.length === 1 ? '-translate-y-3' : ''}`}
                     >
                       <div className="flex flex-col items-end">
                         <span className="text-[10px] font-black uppercase tracking-widest text-blue-400 leading-none">Top_Ptr</span>
@@ -287,7 +287,7 @@ export default function InteractiveStack({
                   )}
 
                   {index === displayStack.length - 1 && (
-                    <div className={`absolute -left-32 flex items-center gap-3 ${displayStack.length === 1 ? 'bottom-1' : ''}`}>
+                    <div className={`absolute -left-36 flex items-center gap-3 ${displayStack.length === 1 ? 'translate-y-5' : ''}`}>
                        <div className="flex flex-col items-end opacity-40">
                         <span className="text-[10px] font-black uppercase tracking-widest text-white leading-none">Base_Ptr</span>
                         <span className="text-[8px] font-mono text-white/50 uppercase">Stack_Origin</span>
@@ -403,7 +403,7 @@ export default function InteractiveStack({
           <div className={`p-6 border border-dashed ${borderColor} bg-white/5 opacity-50`}>
              <h4 className="text-[9px] font-black uppercase tracking-[0.2em] mb-2 text-blue-400">Architect_Note</h4>
              <p className="text-[10px] leading-relaxed italic">
-               "A stack is a linear data structure that follows the Last-In, First-Out (LIFO) principle. Think of it as a stack of cafeteria plates."
+               &quot;A stack is a linear data structure that follows the Last-In, First-Out (LIFO) principle. Think of it as a stack of cafeteria plates.&quot;
              </p>
           </div>
         </aside>

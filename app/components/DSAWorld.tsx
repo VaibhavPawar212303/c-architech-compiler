@@ -241,7 +241,7 @@ function SystemMap({ theme, stack, heap, globals }: any) {
           <div className={`p-4 rounded-xl mb-6 font-mono text-[10px] border ${
             theme === 'dark' ? 'bg-black/40 border-white/5 text-blue-400' : 'bg-slate-50 border-black/5 text-blue-700'
           }`}>
-            <p className="mb-2 opacity-40 italic">// Required structural pattern:</p>
+            <p className="mb-2 opacity-40 italic">{"// Required structural pattern:"}</p>
             <pre className="overflow-x-auto whitespace-pre">
 {`struct Home { 
   struct Room kitchen; 
@@ -279,7 +279,7 @@ struct Home myHome;`}
       <div className="h-full flex flex-col items-center justify-center opacity-40">
         <Activity size={48} className="mb-4 animate-pulse" />
         <h3 className="text-sm font-black uppercase tracking-[0.3em]">No_Home_Struct_Detected</h3>
-        <p className="text-[10px] mt-2 font-mono italic text-center max-w-xs">Declare a 'struct Home myHome' to see the architectural blueprint visualization return.</p>
+        <p className="text-[10px] mt-2 font-mono italic text-center max-w-xs">Declare a &apos;struct Home myHome&apos; to see the architectural blueprint visualization return.</p>
         <button 
           onClick={() => setHasDismissedBlueprint(false)}
           className="mt-6 text-[10px] uppercase font-black tracking-widest underline underline-offset-4"
