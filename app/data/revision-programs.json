@@ -1,0 +1,68 @@
+[
+  {
+    "id": "rev-arithmetic",
+    "title": "Arithmetic Operations",
+    "description": "Basic addition of two integers and storing the result in a sum variable.",
+    "code": "#include <stdio.h>\nint main(){\n  int a = 10;\n  int b = 20;\n  int sum = a+b;\n  printf(\"The addition of a and b is %d:\",sum);\n}\n"
+  },
+  {
+    "id": "rev-arithmetic-circle",
+    "title": "Circle Area & Perimeter",
+    "description": "Calculate area and perimeter of a circle using floating point numbers and user input.",
+    "code": "#include <stdio.h>\nint main(){\n  float radius;\n  float area,perimeter;\n // find the area and the perimeter of circle \n // area = 3.14 * r * r;\n // peri = 2 * 3.14 * r ;\n \n // enter the value of r \n printf(\"Enter the value of radius : \");\n scanf(\"%f\",&radius);\n // area of a circle \n printf(\"Radius of circle : %f\",radius);\n area = 3.14 * radius * radius;\n printf(\"Area of a circle is : %f\",area);\n \n // perimeter of a circle \n perimeter = 3.14 * 2 * radius;\n printf(\"Perimeter of circle is : %f\",perimeter);\n}\n"
+  },
+  {
+    "id": "rev-arithmetic-circle-func",
+    "title": "Circle Area & Perimeter (Functions)",
+    "description": "Calculate area and perimeter of a circle using custom functions and user input.",
+    "code": "#include <stdio.h>\n\nfloat calculateAreaOfCircle(int r){\n float a = 3.14 * r * r;\n return a;\n}\n\nfloat calculatePerimeterOfCircle(int r){\n float p = 3.14 * 2 * r;\n return p;\n}\n\nint main(){\n  float radius;\n  float area,perimeter;\n // find the area and the perimeter of circle \n // area = 3.14 * r * r;\n // peri = 2 * 3.14 * r ;\n \n // enter the value of r \n printf(\"Enter the value of radius : \");\n scanf(\"%f\",&radius);\n // area of a circle \n printf(\"Radius of circle : %f\\n\",radius);\n area = calculateAreaOfCircle(radius);\n printf(\"Area of a circle is : %f\\n\",area);\n \n // perimeter of a circle \n perimeter= calculatePerimeterOfCircle(radius);\n printf(\"Perimeter of circle is : %f\",perimeter);\n}\n"
+  },
+  {
+    "id": "rev-arithmetic-circle-ptr",
+    "title": "Circle Area & Perimeter (Pointers)",
+    "description": "Calculate area and perimeter of a circle using pointers to return multiple values from a function.",
+    "code": "#include <stdio.h>\n\nfloat calculateAreaPeriOfCircle(int r, float *area, float *perimeter){\n *area = 3.14 * r *r;\n *perimeter = 3.14 *2 * r;\n}\n\nint main(){\n  float radius;\n  float area,perimeter;\n // find the area and the perimeter of circle \n // area = 3.14 * r * r;\n // peri = 2 * 3.14 * r ;\n \n // enter the value of r \n printf(\"Enter the value of radius : \");\n scanf(\"%f\",&radius);\n calculateAreaPeriOfCircle(radius,&area,&perimeter);\n // area of a circle \n printf(\"Radius of circle : %f\\n\",radius);\n printf(\"Area of a circle is : %f\\n\",area);\n // perimeter of a circle \n printf(\"Perimeter of circle is : %f\",perimeter);\n}\n"
+  },
+  {
+    "id": "rev-arithmetic-circle-ptr-full",
+    "title": "Circle Area & Perimeter (Full Pointers)",
+    "description": "Comprehensive pointer usage: passing addresses for all parameters including the radius.",
+    "code": "#include <stdio.h>\n\nfloat calculateAreaPeriOfCircle(float *r, float *area, float *perimeter){\n *area = 3.14 *(*r) * (*r);\n *perimeter = 3.14 *2 * (*r);\n}\n\nint main(){\n  float radius;\n  float area,perimeter;\n // find the area and the perimeter of circle \n // area = 3.14 * r * r;\n // peri = 2 * 3.14 * r ;\n \n // enter the value of r \n printf(\"Enter the value of radius : \");\n scanf(\"%f\",&radius);\n calculateAreaPeriOfCircle(&radius,&area,&perimeter);\n // area of a circle \n printf(\"Radius of circle : %f\\n\",radius);\n printf(\"Area of a circle is : %f\\n\",area);\n // perimeter of a circle \n printf(\"Perimeter of circle is : %f\",perimeter);\n}\n"
+  },
+  {
+    "id": "rev-number-temp",
+    "title": "Reverse Number (Temp Variable)",
+    "description": "Reverse digits of a number using a temporary variable and modulo operator.",
+    "code": "#include <stdio.h>\n\nint main() {\n    int n = 1234;\n    int reverse = 0;\n    int temp;\n    \n    printf(\"Original number: %d\\n\", n);\n    \n    while(n != 0) {\n        temp = n % 10;\n        reverse = reverse * 10 + temp;\n        n = n / 10;\n    }\n    \n    printf(\"Reversed number: %d\\n\", reverse);\n    return 0;\n}\n"
+  },
+  {
+    "id": "rev-number-pointer",
+    "title": "Reverse Number (Pointers)",
+    "description": "Use a pointer to modify the original number and reverse its digits.",
+    "code": "#include <stdio.h>\n\nvoid reverseNum(int *n) {\n    int rev = 0;\n    int val = *n;\n    while(val != 0) {\n        rev = rev * 10 + (val % 10);\n        val = val / 10;\n    }\n    *n = rev;\n}\n\nint main() {\n    int num = 5678;\n    printf(\"Before reverse: %d\\n\", num);\n    \n    reverseNum(&num);\n    \n    printf(\"After reverse: %d\\n\", num);\n    return 0;\n}\n"
+  },
+  {
+    "id": "swap-no-pointer",
+    "title": "Swap Numbers (No Pointers)",
+    "description": "Demonstrates Call-by-Value where values are swapped inside the function but the original variables remain unchanged.",
+    "code": "#include <stdio.h>\n\nvoid swap(int x, int y) {\n    int temp;\n    printf(\"Inside swap function (before): x=%d, y=%d\\n\", x, y);\n    temp = x;\n    x = y;\n    y = temp;\n    printf(\"Inside swap function (after): x=%d, y=%d\\n\", x, y);\n}\n\nint main() {\n    int a = 10;\n    int b = 20;\n    printf(\"Before swap: a=%d, b=%d\\n\", a, b);\n    \n    swap(a, b);\n    \n    printf(\"After swap in main: a=%d, b=%d (Values did not change!)\\n\", a, b);\n    return 0;\n}\n"
+  },
+  {
+    "id": "swap-pointers",
+    "title": "Swap Numbers (Using Pointers)",
+    "description": "Demonstrates Call-by-Reference where pointers are used to directly modify the memory of the original variables.",
+    "code": "#include <stdio.h>\n\nvoid swap(int *x, int *y) {\n    int temp;\n    printf(\"Swapping values at addresses %p and %p\\n\", x, y);\n    temp = *x;\n    *x = *y;\n    *y = temp;\n}\n\nint main() {\n    int a = 10;\n    int b = 20;\n    printf(\"Before swap: a=%d, b=%d\\n\", a, b);\n    \n    swap(&a, &b);\n    \n    printf(\"After swap: a=%d, b=%d (Successfully swapped!)\\n\", a, b);\n    return 0;\n}\n"
+  },
+  {
+    "id": "rev-double-pointers",
+    "title": "Double Pointers (Pointers to Pointers)",
+    "description": "Demonstrates levels of indirection using double pointers to access and modify values through multiple levels of memory addresses.",
+    "code": "#include <stdio.h>\n\nint main() {\n  // Declare the variables \n  int i = 3;\n  int *j;\n  int **k;\n\n  // Assign the values to j and k \n  j = &i;\n  k = &j;\n\n  // Address of all variables \n  printf(\"Address of i                   : %u\\n\", &i);\n  printf(\"Address of j                   : %u\\n\", &j);\n  printf(\"Address of k                   : %u\\n\", &k);\n  printf(\"---------------------------------------\\n\");\n\n  // Address of i and j working \n  printf(\"Value of i                     : %d\\n\", i);\n  printf(\"Address of i stored in j       : %u\\n\", j);\n  printf(\"Value of i access by pointer j : %d\\n\", *j);   \n  printf(\"---------------------------------------\\n\");\n\n  // Address of k and link with j and working \n  printf(\"Value of i                     : %d\\n\", i);\n  printf(\"Address of i stored in j       : %u\\n\", j);\n  printf(\"Address of j stored in k       : %u\\n\", k);\n  printf(\"Value of i access by pointer k : %d\\n\", **k);\n\n  return 0;\n}\n"
+  },
+  {
+    "id": "rev-nested-structs",
+    "title": "Nested Structures (House, Rooms & Appliances)",
+    "description": "Demonstrates three levels of structure nesting: a House contains Rooms, and each Room contains Appliances.",
+    "code": "#include <stdio.h>\n\n// Level 0: The Appliance Blueprint\nstruct Appliance {\n    int isOn;       // 0 for OFF, 1 for ON\n    int power;      // Speed/Brightness\n};\n\n// Level 1: The Room Structure\nstruct Room {\n    struct Appliance fan;    // Nested Struct\n    struct Appliance bulb;   // Nested Struct\n    int windowOpen;          // 0 for Closed, 1 for Open\n};\n\n// Level 2: The House Structure\nstruct House {\n   struct Room livingRoom;\n   struct Room kitchen;\n   struct Room bedroom;\n};\n\nint main() {\n    // Creating our \"House\" on the STACK\n    struct House myHome;\n\n    // livingRoom configuration\n    myHome.livingRoom.fan.isOn   = 1;\n    myHome.livingRoom.fan.power  = 50; \n    myHome.livingRoom.bulb.isOn  = 1;\n    myHome.livingRoom.bulb.power = 20;\n    myHome.livingRoom.windowOpen = 1; \n\n    // Kitchen configuration\n    myHome.kitchen.fan.isOn   = 1;\n    myHome.kitchen.fan.power  = 40; \n    myHome.kitchen.bulb.isOn  = 1;\n    myHome.kitchen.bulb.power = 20;\n    myHome.kitchen.windowOpen = 0; \n\n    // Bedroom configuration\n    myHome.bedroom.fan.isOn   = 1;\n    myHome.bedroom.fan.power  = 30; \n    myHome.bedroom.bulb.isOn  = 1;\n    myHome.bedroom.bulb.power = 20;\n    myHome.bedroom.windowOpen = 1; \n\n    printf(\"House configured successfully.\\n\");\n    return 0;\n}\n"
+  }
+ ]

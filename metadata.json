@@ -1,0 +1,6 @@
+{
+  "name": "C Memory Architect",
+  "description": "A high-tech interactive debugger for C memory management, featuring World Space visualization that maps C structures to architectural blueprints and structural layouts.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
