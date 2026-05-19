@@ -276,23 +276,23 @@ export default function InteractiveStack({
                   {index === 0 && (
                     <motion.div 
                       layoutId="top-indicator"
-                      className={`absolute -left-28 flex items-center gap-2 ${displayStack.length === 1 ? '-translate-y-6' : ''}`}
+                      className={`absolute -left-32 flex items-center gap-3 ${displayStack.length === 1 ? 'top-1' : ''}`}
                     >
                       <div className="flex flex-col items-end">
-                        <span className="text-[10px] font-black uppercase tracking-widest text-blue-500 leading-none">Top_Ptr</span>
-                        <span className="text-[8px] font-mono text-blue-500/50 uppercase">Stack_Limit</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-blue-400 leading-none">Top_Ptr</span>
+                        <span className="text-[8px] font-mono text-blue-400/50 uppercase">Stack_Limit</span>
                       </div>
-                      <ArrowRight size={18} className="text-blue-500 animate-pulse" />
+                      <ArrowRight size={20} className="text-blue-400 animate-pulse" />
                     </motion.div>
                   )}
 
                   {index === displayStack.length - 1 && (
-                    <div className={`absolute -left-28 flex items-center gap-2 ${displayStack.length === 1 ? 'translate-y-6' : ''}`}>
+                    <div className={`absolute -left-32 flex items-center gap-3 ${displayStack.length === 1 ? 'bottom-1' : ''}`}>
                        <div className="flex flex-col items-end opacity-40">
                         <span className="text-[10px] font-black uppercase tracking-widest text-white leading-none">Base_Ptr</span>
                         <span className="text-[8px] font-mono text-white/50 uppercase">Stack_Origin</span>
                       </div>
-                      <ArrowRight size={18} className="text-white opacity-40" />
+                      <ArrowRight size={20} className="text-white opacity-40" />
                     </div>
                   )}
                 </motion.div>
