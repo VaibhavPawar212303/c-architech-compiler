@@ -2,59 +2,84 @@
   "chapters": [
     {
       "id": 1,
-      "title": "Foundations",
-      "fullTitle": "Foundations & Data Types",
-      "icon": "Cpu",
-      "desc": "Variables, Data Types, and Operators",
-      "framework": "C is a typed language. Every piece of data must have a type that tells the compiler how much memory to allocate: 'int' gets 4 bytes, 'double' gets 8 bytes.",
-      "codeSnippet": "int age = 25;\nfloat price = 19.99;\nchar initial = 'A';",
-      "relatedRevisionId": "rev-arithmetic"
+      "title": "Stack Structure",
+      "fullTitle": "LIFO Architecture",
+      "icon": "Database",
+      "desc": "A linear data structure governed by the Last-In, First-Out principle, providing a restricted access pattern for efficient memory management.",
+      "framework": "A stack is a fundamental linear data structure that operates under the LIFO (Last-In, First-Out) architecture. It is characterized by a restricted access model where both additions (push) and removals (pop) occur at only one end, known as the 'top'. This single-ended interaction ensures that the most recently added element is always the first to be retrieved.",
+      "realWorldExamples": [
+        "A stack of dinner plates: You add to the top and take from the top.",
+        "Browser History: The 'Back' button takes you to the most recently visited page.",
+        "The 'Undo' feature in software: It reverses the most recent action first.",
+        "A pile of books: The book placed last is the first to be picked up."
+      ],
+      "terminologies": [
+        { "term": "Push", "def": "Adding an element to the top of the stack." },
+        { "term": "Pop", "def": "Removing the top element from the stack." },
+        { "term": "Peek", "def": "Looking at the top element without removing it." },
+        { "term": "isEmpty", "def": "Checking if the stack has no elements." },
+        { "term": "isFull", "def": "Checking if the stack has reached its maximum capacity." }
+      ],
+      "stackTypes": [
+        { "type": "Fixed Size (Array)", "desc": "Defined with a static size. memory is allocated at compile time. Risk of Overflow." },
+        { "type": "Dynamic Size (Linked List)", "desc": "Grows and shrinks as needed. Memory is allocated at runtime. No size limit except physical RAM." }
+      ],
+      "codeSnippet": "void push(int data) { ... }",
+      "implementation": [
+        "Select storage: Use an Array (Static) or Linked List (Dynamic).",
+        "Top Pointer: Set 'top' to -1 to represent an empty state.",
+        "Push Operation: Increment Top and store data at that position.",
+        "Pop Operation: Retrieve data at Top and decrement the pointer.",
+        "Underflow: Always check if Top == -1 before Popping.",
+        "Overflow: If using an Array, check if Top == MAX - 1 before Pushing."
+      ],
+      "relatedRevisionId": "rev-stack-basic"
     },
     {
       "id": 2,
-      "title": "Control Flow",
-      "fullTitle": "Advanced Control Flow",
+      "title": "Queue Flow",
+      "fullTitle": "FIFO Systems",
       "icon": "Workflow",
-      "desc": "Conditionals and Loops",
-      "framework": "Execution flow is governed by logic gates like if/else and loops. These determine which instructions the CPU processes next based on register comparisons.",
-      "codeSnippet": "if (x > 0) {\n  while (x--) printf(\"%d\", x);\n}",
-      "relatedRevisionId": "rev-number-temp"
+      "desc": "First-In, First-Out buffering and scheduling logic.",
+      "framework": "A queue is a linear structure which follows a particular order in which the operations are performed.",
+      "codeSnippet": "void enqueue(int data) { ... }",
+      "relatedRevisionId": "rev-queue-basic"
     },
     {
       "id": 3,
-      "title": "Memory & Pointers",
-      "fullTitle": "The Magic of Pointers",
-      "icon": "Database",
-      "desc": "Addresses, Dereferencing, and Pointers",
-      "framework": "A pointer is simply a variable that stores a memory address. Think of it as a remote control that cannot do anything itself but tells you where the real TV is located.",
-      "codeSnippet": "int x = 10;\nint *p = &x; // p stores address of x\n*p = 20;    // changes x to 20",
-      "relatedRevisionId": "swap-pointers"
+      "title": "Linked Lists",
+      "fullTitle": "Dynamic Pointers",
+      "icon": "Network",
+      "desc": "Sequential access using node-based heap allocation.",
+      "framework": "A linked list is a linear data structure, in which the elements are not stored at contiguous memory locations.",
+      "codeSnippet": "struct Node* next; ...",
+      "relatedRevisionId": "rev-linked-list"
     },
     {
       "id": 4,
-      "title": "Function Logic",
-      "fullTitle": "Recursive Function Logic",
-      "icon": "Tv",
-      "desc": "Scope, Call-by-Value, and Call-by-Reference",
-      "framework": "Functions create local stack frames. Recursive calls stack these frames atop each other until a base case is hit, then they unwind in LIFO order.",
-      "codeSnippet": "int fact(int n) {\n  if (n <= 1) return 1;\n  return n * fact(n-1);\n}",
-      "relatedRevisionId": "swap-no-pointer"
+      "title": "Tree Graphs",
+      "fullTitle": "Hierarchical Data",
+      "icon": "Activity",
+      "desc": "Non-linear structures representing parental relationships.",
+      "framework": "A tree data structure is a non-linear data structure that consists of nodes connected by edges.",
+      "codeSnippet": "struct TreeNode* left; ...",
+      "relatedRevisionId": "rev-trees"
     },
     {
       "id": 5,
-      "title": "Dynamic Allocation",
-      "fullTitle": "Heap Memory Architecture",
-      "icon": "Zap",
-      "desc": "Malloc, Free, and Heap Management",
-      "framework": "Heap memory is persistent until freed. Unlike the stack, which cleans up after a function finishes, heap memory stays reserved as long as you need it.",
-      "codeSnippet": "int *arr = (int*)malloc(5 * sizeof(int));\nif (arr != NULL) {\n  arr[0] = 100;\n  free(arr);\n}",
-      "relatedRevisionId": "rev-number-pointer"
+      "title": "Hash Maps",
+      "fullTitle": "Direct Indexing",
+      "icon": "Search",
+      "desc": "O(1) average case lookup using calculated keys.",
+      "framework": "Hashing is a technique that is used to uniquely identify a specific object from a group of similar objects.",
+      "codeSnippet": "int hash = key % size; ...",
+      "relatedRevisionId": "rev-hashing"
     }
   ],
   "mechanics": [
-    "Allocation of segment space",
-    "Pointer arithmetic and offsets",
-    "Symbol table resolution",
-    "Register level optimization"
+    "LIFO (Last-In, First-Out) logic",
+    "Push and Pop operations",
+    "Stack Pointer management",
+    "Memory frame allocation"
   ]
 }

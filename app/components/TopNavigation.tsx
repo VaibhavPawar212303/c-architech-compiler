@@ -17,8 +17,8 @@ import {
 interface TopNavigationProps {
   theme: 'dark' | 'light';
   setTheme: React.Dispatch<React.SetStateAction<'dark' | 'light'>>;
-  mainTab: 'compiler' | 'dsa' | 'revision';
-  setMainTab: (tab: 'compiler' | 'dsa' | 'revision') => void;
+  mainTab: 'compiler' | 'dsa' | 'revision' | 'learning';
+  setMainTab: (tab: 'compiler' | 'dsa' | 'revision' | 'learning') => void;
   enableBeta?: boolean;
 }
 
@@ -33,7 +33,8 @@ export default function TopNavigation({
 
   const navItems = [
     { id: 'compiler', label: 'Compiler_Core', icon: Workflow, color: 'blue' },
-    { id: 'revision', label: 'Revision_Lab', icon: BookOpen, color: 'amber' },
+    { id: 'learning', label: 'Learning_Hub', icon: BookOpen, color: 'indigo' },
+    { id: 'revision', label: 'Revision_Lab', icon: Zap, color: 'amber' },
     ...(enableBeta ? [{ id: 'dsa', label: 'World_Space', icon: Network, color: 'emerald' }] : [])
   ];
 

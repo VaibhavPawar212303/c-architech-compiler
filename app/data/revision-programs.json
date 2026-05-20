@@ -64,5 +64,11 @@
     "title": "Nested Structures (House, Rooms & Appliances)",
     "description": "Demonstrates three levels of structure nesting: a House contains Rooms, and each Room contains Appliances.",
     "code": "#include <stdio.h>\n\n// Level 0: The Appliance Blueprint\nstruct Appliance {\n    int isOn;       // 0 for OFF, 1 for ON\n    int power;      // Speed/Brightness\n};\n\n// Level 1: The Room Structure\nstruct Room {\n    struct Appliance fan;    // Nested Struct\n    struct Appliance bulb;   // Nested Struct\n    int windowOpen;          // 0 for Closed, 1 for Open\n};\n\n// Level 2: The House Structure\nstruct House {\n   struct Room livingRoom;\n   struct Room kitchen;\n   struct Room bedroom;\n};\n\nint main() {\n    // Creating our \"House\" on the STACK\n    struct House myHome;\n\n    // livingRoom configuration\n    myHome.livingRoom.fan.isOn   = 1;\n    myHome.livingRoom.fan.power  = 50; \n    myHome.livingRoom.bulb.isOn  = 1;\n    myHome.livingRoom.bulb.power = 20;\n    myHome.livingRoom.windowOpen = 1; \n\n    // Kitchen configuration\n    myHome.kitchen.fan.isOn   = 1;\n    myHome.kitchen.fan.power  = 40; \n    myHome.kitchen.bulb.isOn  = 1;\n    myHome.kitchen.bulb.power = 20;\n    myHome.kitchen.windowOpen = 0; \n\n    // Bedroom configuration\n    myHome.bedroom.fan.isOn   = 1;\n    myHome.bedroom.fan.power  = 30; \n    myHome.bedroom.bulb.isOn  = 1;\n    myHome.bedroom.bulb.power = 20;\n    myHome.bedroom.windowOpen = 1; \n\n    printf(\"House configured successfully.\\n\");\n    return 0;\n}\n"
+  },
+  {
+    "id": "rev-stack-basic",
+    "title": "Stack Implementation (Array-based)",
+    "description": "Basic implementation of a stack using an array with push and pop operations.",
+    "code": "#include <stdio.h>\n#define MAX 10\n\nint stack[MAX];\nint top = -1;\n\nvoid push(int val) {\n    if(top >= MAX - 1) {\n        printf(\"Stack Overflow!\\n\");\n        return;\n    }\n    stack[++top] = val;\n    printf(\"Pushed %d to stack\\n\", val);\n}\n\nint pop() {\n    if(top == -1) {\n        printf(\"Stack Underflow!\\n\");\n        return -1;\n    }\n    int val = stack[top--];\n    printf(\"Popped %d from stack\\n\", val);\n    return val;\n}\n\nint main() {\n    push(10);\n    push(20);\n    push(30);\n    \n    pop();\n    pop();\n    \n    return 0;\n}\n"
   }
- ]
+]

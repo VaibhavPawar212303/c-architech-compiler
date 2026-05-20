@@ -78,7 +78,7 @@ const ENABLE_BETA = process.env.NEXT_PUBLIC_ENABLE_BETA_FEATURES === 'true';
 function MemoryArchitectContent() {
   const [isMounted, setIsMounted] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const [mainTab, setMainTab] = useState<'compiler' | 'dsa' | 'revision'>('compiler');
+  const [mainTab, setMainTab] = useState<'compiler' | 'dsa' | 'revision' | 'learning'>('compiler');
   const [compilerTab, setCompilerTab] = useState<'visualizer' | 'theory'>('visualizer');
   const [selectedLearningChapter, setSelectedLearningChapter] = useState<number | null>(null);
   
@@ -102,7 +102,7 @@ function MemoryArchitectContent() {
 
     // 2. Sync tab from URL
     const tabFromUrl = searchParams.get('tab');
-    if (tabFromUrl && ['compiler', 'dsa', 'revision'].includes(tabFromUrl)) {
+    if (tabFromUrl && ['compiler', 'dsa', 'revision', 'learning'].includes(tabFromUrl)) {
       setMainTab(tabFromUrl as any);
     }
 
@@ -138,7 +138,7 @@ function MemoryArchitectContent() {
   }, [theme, isMounted]);
 
   // Update URL when tab changes
-  const handleTabChange = (newTab: 'compiler' | 'dsa' | 'revision') => {
+  const handleTabChange = (newTab: 'compiler' | 'dsa' | 'revision' | 'learning') => {
     setMainTab(newTab);
     const params = new URLSearchParams(searchParams.toString());
     params.set('tab', newTab);
@@ -325,6 +325,16 @@ function MemoryArchitectContent() {
             <RevisionPortal 
               theme={theme} 
               onSelectProgram={handleSelectProgram} 
+            />
+          ) : mainTab === 'learning' ? (
+            <LearningHub 
+              theme={theme}
+              selectedChapter={selectedLearningChapter}
+              setSelectedChapter={setSelectedLearningChapter}
+              onDeployModule={(revId) => {
+                const program = revisionPrograms.find(p => p.id === revId);
+                if (program) handleSelectProgram(program.code, revId);
+              }}
             />
           ) : (
             <div className="flex-1 flex items-center justify-center">
