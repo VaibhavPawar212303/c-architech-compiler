@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { Play, FastForward, RotateCcw, Pause, Terminal } from 'lucide-react';
+import { Play, FastForward, RotateCcw, Pause, Terminal, ChevronLeft, ChevronRight } from 'lucide-react';
 import TopNavigation from './components/TopNavigation';
 import CompilerCore from './components/CompilerCore';
 import DSAWorld from './components/DSAWorld';
@@ -81,6 +81,7 @@ function MemoryArchitectContent() {
   const [mainTab, setMainTab] = useState<'compiler' | 'dsa' | 'revision' | 'learning'>('compiler');
   const [compilerTab, setCompilerTab] = useState<'visualizer' | 'theory'>('visualizer');
   const [selectedLearningChapter, setSelectedLearningChapter] = useState<number | null>(null);
+  const [editorWidth, setEditorWidth] = useState<number>(460);
   
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -120,8 +121,24 @@ function MemoryArchitectContent() {
       }
     }
 
+    // 4. Sync editor width from localStorage
+    const savedWidth = localStorage.getItem('kernel_trace_editor_width');
+    if (savedWidth) {
+      const parsed = parseInt(savedWidth, 10);
+      if (!isNaN(parsed) && parsed >= 300 && parsed <= 900) {
+        setEditorWidth(parsed);
+      }
+    }
+
     setIsMounted(true);
   }, []); // Run only once on mount
+
+  // Persist editor width changes
+  useEffect(() => {
+    if (isMounted) {
+      localStorage.setItem('kernel_trace_editor_width', editorWidth.toString());
+    }
+  }, [editorWidth, isMounted]);
 
   // Persist code changes
   useEffect(() => {
@@ -194,13 +211,16 @@ function MemoryArchitectContent() {
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
         {/* SHARED LEFT COLUMN: CODE EDITOR & CONTROLS */}
         {(mainTab === 'compiler' || mainTab === 'dsa') && (
-          <section className={`w-full md:w-[400px] lg:w-[480px] md:min-w-[380px] lg:min-w-[450px] flex flex-col border-b md:border-b-0 md:border-r transition-colors flex-shrink-0 ${
-            theme === 'dark' ? 'border-white/10 bg-black/60 shadow-2xl' : 'border-black/10 bg-white shadow-xl'
-          }`}>
+          <section 
+            style={{ '--editor-width': `${editorWidth}px` } as React.CSSProperties}
+            className={`w-full md:w-[var(--editor-width)] md:min-w-[300px] md:max-w-4xl flex flex-col border-b md:border-b-0 md:border-r transition-all duration-300 ease-in-out flex-shrink-0 ${
+              theme === 'dark' ? 'border-white/10 bg-black/60 shadow-2xl' : 'border-black/10 bg-white shadow-xl'
+            }`}
+          >
             <div className={`p-4 border-b flex items-center justify-between z-10 ${
               theme === 'dark' ? 'bg-black/40 border-white/5' : 'bg-slate-50 border-black/5'
             }`}>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <div className="hidden sm:flex gap-1.5">
                   <div className="w-2 h-2 rounded-full bg-red-500/80" />
                   <div className="w-2 h-2 rounded-full bg-amber-500/80" />
@@ -209,6 +229,41 @@ function MemoryArchitectContent() {
                 <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${theme === 'dark' ? 'text-white/40' : 'text-slate-900/40'}`}>
                   Source_Kernel.c
                 </span>
+
+                {/* Editor Width Adjuster */}
+                <div className={`flex items-center gap-0.5 rounded-md p-0.5 border ${
+                  theme === 'dark' 
+                    ? 'bg-white/5 border-white/10 text-slate-300' 
+                    : 'bg-black/5 border-black/5 text-slate-700'
+                } ml-2`}>
+                  <button 
+                    onClick={() => setEditorWidth(prev => Math.max(prev - 60, 320))}
+                    disabled={editorWidth <= 320}
+                    title="Reduce Editor Width (-60px)"
+                    className={`p-1 rounded transition-all disabled:opacity-20 ${
+                      theme === 'dark' 
+                        ? 'hover:text-white hover:bg-white/10' 
+                        : 'hover:text-black hover:bg-black/10'
+                    }`}
+                  >
+                    <ChevronLeft size={10} />
+                  </button>
+                  <span className="text-[8px] font-mono opacity-60 px-1 font-bold tracking-tight min-w-[32px] text-center">
+                    {editorWidth}px
+                  </span>
+                  <button 
+                    onClick={() => setEditorWidth(prev => Math.min(prev + 60, 800))}
+                    disabled={editorWidth >= 800}
+                    title="Extend Editor Width (+60px)"
+                    className={`p-1 rounded transition-all disabled:opacity-20 ${
+                      theme === 'dark' 
+                        ? 'hover:text-white hover:bg-white/10' 
+                        : 'hover:text-black hover:bg-black/10'
+                    }`}
+                  >
+                    <ChevronRight size={10} />
+                  </button>
+                </div>
               </div>
               
               <div className="flex items-center gap-2 md:gap-4">
