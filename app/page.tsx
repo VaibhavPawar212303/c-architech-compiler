@@ -304,23 +304,6 @@ function MemoryArchitectContent() {
                 currentLine={currentLine} 
                 theme={theme}
               />
-            </div>
-
-            {/* CONSOLE (Moved to left col for better interaction) */}
-            <div className={`h-[240px] border-t overflow-hidden flex flex-col relative ${theme === 'dark' ? 'bg-black/80 border-white/5' : 'bg-slate-50 border-black/5'}`}>
-              <div className="px-4 py-2 border-b flex items-center justify-between">
-                 <span className="text-[8px] font-black uppercase tracking-widest opacity-40">System_Log</span>
-                 {isAutoStepping && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />}
-              </div>
-              <div className="flex-1 overflow-y-auto p-4 custom-scrollbar font-mono text-[9px] md:text-[10px] space-y-1">
-                {history.map((msg, i) => (
-                  <div key={i} className={`flex gap-3 ${msg.includes('ERROR') ? 'text-red-400' : 'text-emerald-400/80'}`}>
-                    <span className="opacity-20">{i+1}</span>
-                    <span>{msg}</span>
-                  </div>
-                ))}
-                <div ref={logEndRef} />
-              </div>
 
               {/* DYNAMIC I/O OVERLAY */}
               <AnimatePresence>
@@ -371,6 +354,8 @@ function MemoryArchitectContent() {
               heap={heap}
               globals={globals}
               freeHeap={freeHeap}
+              history={history}
+              isAutoStepping={isAutoStepping}
             />
           ) : (mainTab === 'dsa' && ENABLE_BETA) ? (
             <div className="flex-1 overflow-y-auto">

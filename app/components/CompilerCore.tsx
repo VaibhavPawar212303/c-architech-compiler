@@ -32,6 +32,8 @@ interface CompilerCoreProps {
   heap: HeapObject[];
   globals: any[];
   freeHeap: (id: string) => void;
+  history?: string[];
+  isAutoStepping?: boolean;
 }
 
 export default function CompilerCore({
@@ -41,8 +43,18 @@ export default function CompilerCore({
   stack,
   heap,
   globals,
-  freeHeap
-}: CompilerCoreProps) {
+  freeHeap,
+  history = [],
+  isAutoStepping = false
+ }: CompilerCoreProps) {
+  const logContainerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (logContainerRef.current) {
+      logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
+    }
+  }, [history]);
+
   return (
     <motion.div 
       key="compiler"
@@ -58,6 +70,47 @@ export default function CompilerCore({
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none" />
         
         <div className="p-4 md:p-8 space-y-8 md:space-y-12 relative">
+          {/* SYSTEM LOG (TOP-RIGHT PANEL) */}
+          <div className={`border-2 rounded-2xl overflow-hidden flex flex-col transition-colors shadow-inner ${
+            theme === 'dark' ? 'bg-black/80 border-emerald-500/20 shadow-2xl' : 'bg-slate-50 border-emerald-600/20 shadow-lg'
+          }`}>
+            <div className={`px-6 py-3 border-b-2 flex items-center justify-between ${
+              theme === 'dark' ? 'bg-[#070707]/90 border-emerald-500/20' : 'bg-slate-100 border-emerald-600/20'
+            }`}>
+              <div className="flex items-center gap-2.5">
+                <Terminal size={14} className={theme === 'dark' ? 'text-emerald-400' : 'text-emerald-600'} />
+                <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${theme === 'dark' ? 'text-white/80' : 'text-slate-800'}`}>
+                  System_Diagnostic_Log
+                </span>
+              </div>
+              {isAutoStepping && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[8px] font-mono text-emerald-500 animate-pulse font-bold tracking-widest uppercase">Stepping_</span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                </div>
+              )}
+            </div>
+            <div 
+              ref={logContainerRef}
+              className={`h-[150px] overflow-y-auto p-5 custom-scrollbar font-mono text-[10px] md:text-[11px] space-y-1.5 ${
+                theme === 'dark' ? 'bg-[#050505] text-emerald-400/80' : 'bg-slate-900 text-emerald-400'
+              }`}
+            >
+              {history.length === 0 ? (
+                <div className="text-emerald-500/40 italic flex items-center gap-2">
+                  <span>&gt; Initialize sequence ready. Awaiting instruction...</span>
+                </div>
+              ) : (
+                history.map((msg, i) => (
+                  <div key={i} className={`flex gap-3 leading-relaxed ${msg.includes('ERROR') ? 'text-red-400' : 'text-emerald-400/80'}`}>
+                    <span className="opacity-30 select-none">{String(i+1).padStart(2, '0')}</span>
+                    <span>{msg}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-12 lg:gap-8">
             {/* THE STACK */}
             <section className="flex flex-col h-[450px] lg:h-[500px] relative border rounded-2xl overflow-hidden transition-colors shadow-inner" style={{ backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.01)' : 'rgba(0,0,0,0.01)' }}>
