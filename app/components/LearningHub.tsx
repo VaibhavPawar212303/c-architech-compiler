@@ -57,7 +57,7 @@ export default function LearningHub({
               className="space-y-12"
             >
               <div className="space-y-4">
-                <h2 className={`text-5xl font-black tracking-tighter uppercase ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                <h2 className={`text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter uppercase break-words ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
                   C_Learning_Path
                 </h2>
                 <p className="text-sm opacity-60 font-mono uppercase tracking-[0.2em]">
@@ -122,7 +122,7 @@ export default function LearningHub({
                      <div className={`p-1 overflow-hidden border ${theme === 'dark' ? 'bg-black/40 border-white/5' : 'bg-white border-black/10 shadow-2xl'}`}>
                         <div className={`p-8 border-b ${theme === 'dark' ? 'border-white/5 bg-white/[0.02]' : 'border-black/5 bg-slate-50'}`}>
                            <span className="text-[10px] font-black uppercase tracking-[0.5em] text-emerald-500 mb-4 block">MODULE_ANALYSIS_VIEW</span>
-                           <h2 className={`text-5xl font-black tracking-tighter ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+                           <h2 className={`text-3xl sm:text-4xl md:text-5xl font-black tracking-tighter break-words ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
                               {chapter.fullTitle}
                            </h2>
                         </div>
