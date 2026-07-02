@@ -88,7 +88,7 @@ export default function LearningHub({
                           {card.title}
                        </h3>
                        <p className="text-[10px] opacity-50 mb-6 leading-relaxed line-clamp-2">{card.desc}</p>
-                       <div className="flex items-center gap-2 text-indigo-500">
+                       <div className="flex items-center justify-center md:justify-start gap-2 text-indigo-500">
                           <span className="text-[9px] font-black uppercase tracking-widest">Start_Learning</span>
                           <ChevronRight size={12} className="group-hover:translate-x-1 transition-transform" />
                         </div>
