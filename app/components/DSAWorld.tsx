@@ -265,7 +265,7 @@ struct Home myHome;`}
 
           <button
             onClick={() => setHasDismissedBlueprint(true)}
-            className="w-full py-4 bg-blue-600 text-white font-black uppercase tracking-widest rounded-xl hover:bg-blue-500 transition-all shadow-lg active:scale-[0.98]"
+            className="w-full py-4 px-4 bg-blue-600 text-white font-black text-xs sm:text-sm uppercase tracking-wide sm:tracking-widest rounded-xl hover:bg-blue-500 transition-all shadow-lg active:scale-[0.98]"
           >
             Activate_Blueprint_Map
           </button>
