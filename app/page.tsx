@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { Play, FastForward, RotateCcw, Pause, Terminal, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Play, RotateCcw, Pause, Terminal, ChevronLeft, ChevronRight, SkipBack, Link2, Check } from 'lucide-react';
 import TopNavigation from './components/TopNavigation';
 import CompilerCore from './components/CompilerCore';
 import DSAWorld from './components/DSAWorld';
@@ -73,6 +73,19 @@ int main() {
 }
 `;
 
+// Share links carry the program in the URL (?code=...), URL-safe base64 of the UTF-8 text.
+const toShareParam = (text: string) => {
+  const bytes = new TextEncoder().encode(text);
+  let bin = '';
+  bytes.forEach((b) => (bin += String.fromCharCode(b)));
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+};
+const fromShareParam = (param: string) => {
+  const bin = atob(param.replace(/-/g, '+').replace(/_/g, '/'));
+  return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+};
+const MAX_SHARE_PARAM = 8000; // keep share URLs within what browsers and chat apps accept
+
 const ENABLE_BETA = process.env.NEXT_PUBLIC_ENABLE_BETA_FEATURES === 'true';
 
 function MemoryArchitectContent() {
@@ -90,8 +103,10 @@ function MemoryArchitectContent() {
   const {
     stack, heap, globals, code, setCode, currentLine, history, isAutoStepping, setIsAutoStepping,
     isAwaitingInput, userInput, setUserInput, inputTarget, handleInputSubmit, runCode, stepCode,
+    stepBack, goToStep, canStepForward, stepIndex, totalSteps, finished, lastLine,
     resetCompiler, logEndRef, freeHeap
   } = useCompiler(INITIAL_CODE);
+  const [shareState, setShareState] = useState<'idle' | 'copied' | 'toolong' | 'error'>('idle');
 
   // Sync state with local storage and URL
   useEffect(() => {
@@ -109,7 +124,14 @@ function MemoryArchitectContent() {
 
     // 3. Sync code from URL (Revision) or localStorage
     const revId = searchParams.get('rev');
-    if (revId) {
+    const sharedParam = searchParams.get('code');
+    let sharedCode: string | null = null;
+    if (sharedParam) {
+      try { sharedCode = fromShareParam(sharedParam); } catch { sharedCode = null; }
+    }
+    if (sharedCode) {
+      setCode(sharedCode);
+    } else if (revId) {
       const program = revisionPrograms.find(p => p.id === revId);
       if (program) {
         setCode(program.code);
@@ -172,6 +194,40 @@ function MemoryArchitectContent() {
     }
   }, [mainTab, ENABLE_BETA]);
 
+  // Keyboard shortcuts on the Compiler tab: ← → step, Home first step, Space auto step.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (mainTab !== 'compiler' || e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = e.target as HTMLElement | null;
+      const tag = el?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el?.isContentEditable) return;
+      if (e.key === 'ArrowRight') {
+        if (canStepForward && !isAutoStepping && !isAwaitingInput) { e.preventDefault(); stepCode(); }
+      } else if (e.key === 'ArrowLeft') {
+        if (stepIndex > 0 && !isAutoStepping) { e.preventDefault(); stepBack(); }
+      } else if (e.key === 'Home') {
+        if (stepIndex > 0 && !isAutoStepping) { e.preventDefault(); goToStep(0); }
+      } else if (e.key === ' ' && tag !== 'BUTTON') {
+        if (!isAwaitingInput) { e.preventDefault(); if (finished) runCode(); else setIsAutoStepping(!isAutoStepping); }
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [mainTab, canStepForward, isAutoStepping, isAwaitingInput, stepIndex, finished, stepCode, stepBack, goToStep, runCode, setIsAutoStepping]);
+
+  const handleShare = async () => {
+    const param = toShareParam(code);
+    if (param.length > MAX_SHARE_PARAM) { setShareState('toolong'); setTimeout(() => setShareState('idle'), 2500); return; }
+    const url = `${window.location.origin}${window.location.pathname}?tab=compiler&code=${param}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareState('copied');
+    } catch {
+      setShareState('error');
+    }
+    setTimeout(() => setShareState('idle'), 2500);
+  };
+
   if (!isMounted) return null;
 
   const handleSelectProgram = (newCode: string, revId?: string) => {
@@ -214,7 +270,7 @@ function MemoryArchitectContent() {
           <div className={`mx-4 md:mx-8 mt-4 rounded-2xl border px-5 py-3 flex flex-wrap items-center gap-x-6 gap-y-3 ${card}`}>
             <div className="mr-auto">
               <h1 className={`text-base font-bold leading-tight ${title}`}>Memory visualizer</h1>
-              <p className={`text-xs ${muted}`}>Run C code and watch the stack and heap change, line by line.</p>
+              <p className={`text-xs ${muted}`}>Step through C code. ← → to step, Space to auto step.</p>
             </div>
 
             <label className="flex items-center gap-2">
@@ -225,7 +281,7 @@ function MemoryArchitectContent() {
                   const program = revisionPrograms.find((p) => p.id === e.target.value);
                   if (program) handleSelectProgram(program.code, program.id);
                 }}
-                className={`h-10 rounded-[10px] border px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/30 ${
+                className={`h-10 w-44 rounded-[10px] border px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/30 ${
                   dark ? 'bg-slate-950 border-slate-700 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-900'
                 }`}
               >
@@ -236,25 +292,42 @@ function MemoryArchitectContent() {
               </select>
             </label>
 
-            <div className={`flex items-center gap-1.5 rounded-xl p-1 ${dark ? 'bg-slate-950' : 'bg-slate-100'}`}>
+            <div className={`flex flex-wrap items-center gap-1.5 rounded-xl p-1 max-w-full ${dark ? 'bg-slate-950' : 'bg-slate-100'}`}>
               <button
-                onClick={() => setIsAutoStepping(!isAutoStepping)}
+                onClick={() => (finished ? runCode() : setIsAutoStepping(!isAutoStepping))}
                 disabled={isAwaitingInput}
-                title={isAutoStepping ? 'Pause auto step' : 'Auto step'}
-                className={`h-8 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-40 ${
+                title={finished ? 'Run again (Space)' : isAutoStepping ? 'Pause auto step (Space)' : 'Auto step (Space)'}
+                className={`h-8 px-3 rounded-lg text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap transition-colors disabled:opacity-40 ${
                   isAutoStepping ? 'bg-amber-500 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'
                 }`}
               >
-                {isAutoStepping ? <Pause size={13} /> : <Play size={13} />}
-                {isAutoStepping ? 'Pause' : 'Auto step'}
+                {isAutoStepping ? <Pause size={13} /> : finished ? <RotateCcw size={13} /> : <Play size={13} />}
+                {isAutoStepping ? 'Pause' : finished ? 'Run again' : 'Auto step'}
+              </button>
+              <button
+                onClick={stepBack}
+                disabled={stepIndex === 0 || isAutoStepping}
+                title="Previous step (←)"
+                className={`h-8 px-3 rounded-lg border text-xs font-semibold flex items-center gap-1 transition-colors disabled:opacity-40 ${dark ? 'bg-slate-900' : 'bg-white'} ${ghostBtn}`}
+              >
+                <ChevronLeft size={14} /> Prev
               </button>
               <button
                 onClick={stepCode}
-                disabled={isAutoStepping || isAwaitingInput}
-                title="Step forward"
-                className={`h-8 px-3 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-colors disabled:opacity-40 ${dark ? 'bg-slate-900' : 'bg-white'} ${ghostBtn}`}
+                disabled={!canStepForward || isAutoStepping || isAwaitingInput}
+                title="Next step (→)"
+                className={`h-8 px-3 rounded-lg border text-xs font-semibold flex items-center gap-1 transition-colors disabled:opacity-40 ${dark ? 'bg-slate-900' : 'bg-white'} ${ghostBtn}`}
               >
-                <FastForward size={13} /> Step
+                Next <ChevronRight size={14} />
+              </button>
+              <button
+                onClick={() => goToStep(0)}
+                disabled={stepIndex === 0 || isAutoStepping}
+                title="First step (Home)"
+                aria-label="First step"
+                className={`h-8 px-2.5 rounded-lg border text-xs font-semibold flex items-center transition-colors disabled:opacity-40 ${dark ? 'bg-slate-900' : 'bg-white'} ${ghostBtn}`}
+              >
+                <SkipBack size={13} />
               </button>
               <button
                 onClick={resetCompiler}
@@ -264,6 +337,34 @@ function MemoryArchitectContent() {
                 <RotateCcw size={13} /> Reset
               </button>
             </div>
+
+            {/* Step scrubber */}
+            <div className="w-36">
+              <p className={`text-xs font-semibold mb-1 ${finished ? 'text-emerald-600' : title}`}>
+                {`Step ${stepIndex}`}
+                {totalSteps > stepIndex || finished ? ` of ${totalSteps}` : ''}
+                {finished ? ' \u00b7 Finished' : ''}
+              </p>
+              <input
+                type="range"
+                min={0}
+                max={Math.max(totalSteps, 1)}
+                value={stepIndex}
+                disabled={totalSteps === 0 || isAutoStepping || isAwaitingInput}
+                onChange={(e) => goToStep(Number(e.target.value))}
+                aria-label="Step"
+                className="w-full accent-blue-600 disabled:opacity-40"
+              />
+            </div>
+
+            <button
+              onClick={handleShare}
+              title="Copy a link to this program"
+              className={`h-10 px-4 rounded-lg border text-xs font-semibold flex items-center gap-2 transition-colors ${dark ? 'bg-slate-900' : 'bg-white'} ${ghostBtn}`}
+            >
+              {shareState === 'copied' ? <Check size={14} className="text-emerald-600" /> : <Link2 size={14} />}
+              {shareState === 'copied' ? 'Link copied' : shareState === 'toolong' ? 'Too long to share' : shareState === 'error' ? 'Copy failed' : 'Share link'}
+            </button>
           </div>
         )}
 
@@ -309,7 +410,7 @@ function MemoryArchitectContent() {
 
               <div className="flex-1 relative overflow-hidden min-h-0">
                 {/* The code surface is always dark, like the Thedappled code blocks */}
-                <CodeEditor code={code} setCode={setCode} currentLine={currentLine} theme="dark" />
+                <CodeEditor code={code} setCode={setCode} currentLine={currentLine} lastLine={lastLine} finished={finished} theme="dark" />
 
                 {/* Input overlay is only needed where the console isn't shown (World Space beta) */}
                 <AnimatePresence>
@@ -369,6 +470,11 @@ function MemoryArchitectContent() {
                 setUserInput={setUserInput}
                 inputTarget={inputTarget as any}
                 onInputSubmit={handleInputSubmit as any}
+                finished={finished}
+                stepIndex={stepIndex}
+                lastLine={lastLine}
+                lastStatement={lastLine >= 0 ? code.split('\n')[lastLine] ?? '' : ''}
+                nextStatement={!finished && currentLine >= 0 ? code.split('\n')[currentLine] ?? '' : ''}
               />
             ) : mainTab === 'dsa' && ENABLE_BETA ? (
               <div className="flex-1 overflow-y-auto">

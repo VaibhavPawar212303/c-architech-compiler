@@ -9,9 +9,11 @@ interface HeapVisualizerProps {
   heap: HeapObject[];
   freeHeap: (id: string) => void;
   theme?: 'dark' | 'light';
+  /** program has ended: any block that was never freed is flagged as leaked */
+  finished?: boolean;
 }
 
-const HeapVisualizer = ({ heap, freeHeap, theme = 'dark' }: HeapVisualizerProps) => {
+const HeapVisualizer = ({ heap, freeHeap, theme = 'dark', finished = false }: HeapVisualizerProps) => {
   return (
     <div className="relative flex flex-col h-full">
       {/* Memory Decoration */}
@@ -22,16 +24,22 @@ const HeapVisualizer = ({ heap, freeHeap, theme = 'dark' }: HeapVisualizerProps)
       <div className="flex-1 p-3 md:p-6 flex flex-col gap-4 md:gap-6 relative z-10 overflow-y-auto overflow-x-auto custom-scrollbar min-h-0">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <AnimatePresence>
-              {heap.map((obj) => (
+              {heap.map((obj, blockIndex) => (
                 <motion.div
                   key={obj.id}
+                  data-heap-addr={obj.address.toLowerCase()}
+                  data-freed={obj.freed ? 'true' : undefined}
                   initial={{ scale: 0.95, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 1.05, opacity: 0 }}
                   className={`relative rounded-xl border flex flex-col overflow-hidden transition-all shadow-sm hover:shadow-md ${
-                    theme === 'dark' ? 'bg-black/40 border-white/10' : 'bg-white border-black/10'
+                    obj.freed
+                      ? `border-dashed opacity-70 ${theme === 'dark' ? 'border-slate-500 bg-slate-800/60' : 'border-slate-400 bg-slate-100'}`
+                      : finished
+                        ? (theme === 'dark' ? 'border-amber-600 bg-amber-950/40' : 'border-amber-400 bg-amber-50')
+                        : theme === 'dark' ? 'bg-black/40 border-white/10' : 'bg-white border-black/10'
                   }`}
-                  style={{ borderLeft: `3px solid ${obj.color}` }}
+                  style={{ borderLeft: `3px solid ${obj.freed ? '#94a3b8' : finished ? '#f59e0b' : obj.color}` }}
                 >
                   <div className={`px-4 py-2 flex items-center justify-between border-b ${
                     theme === 'dark' ? 'border-white/5 bg-white/[0.02]' : 'border-black/5 bg-slate-50'
@@ -39,10 +47,14 @@ const HeapVisualizer = ({ heap, freeHeap, theme = 'dark' }: HeapVisualizerProps)
                     <div className="flex items-center gap-2">
                        <Database size={12} style={{ color: obj.color }} />
                        <h4 className={`text-[9px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-white/80' : 'text-slate-900/80'}`}>
-                         {obj.name}
+                         Block {blockIndex + 1} &middot; {obj.size} B
                        </h4>
                     </div>
-                    <span className="text-[8px] font-mono opacity-30 tabular-nums">0x{obj.address.toUpperCase()}</span>
+                    <div className="flex items-center gap-2">
+                      {obj.freed && <span className="rounded-full bg-red-100 text-red-700 px-2 py-0.5 text-[10px] font-semibold">freed</span>}
+                      {!obj.freed && finished && <span className="rounded-full bg-amber-500 text-white px-2 py-0.5 text-[10px] font-semibold">leaked</span>}
+                      <span className="text-[8px] font-mono opacity-50 tabular-nums">{obj.address.toUpperCase().replace(/^0X/, '0x')}</span>
+                    </div>
                   </div>
                   
                   <div className="p-3 md:p-4 space-y-3 md:space-y-4">
@@ -69,14 +81,14 @@ const HeapVisualizer = ({ heap, freeHeap, theme = 'dark' }: HeapVisualizerProps)
                           style={{ backgroundColor: obj.color }}
                         />
                       </div>
-                      <button 
+                      {!obj.freed && !finished && <button 
                         onClick={() => freeHeap(obj.id)}
                         className={`text-[8px] font-black uppercase tracking-tighter px-2 py-1 rounded transition-colors border ${
                           theme === 'dark' ? 'border-red-500/20 text-red-500/80 hover:bg-red-500 hover:text-white' : 'border-red-600/20 text-red-600/80 hover:bg-red-600 hover:text-white'
                         }`}
                       >
                         free()
-                      </button>
+                      </button>}
                     </div>
                   </div>
                 </motion.div>

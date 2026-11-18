@@ -8,9 +8,12 @@ import { StackFrame } from '../types/memory';
 interface StackVisualizerProps {
   stack: StackFrame[];
   theme?: 'dark' | 'light';
+  /** addresses of heap blocks that have been freed, so pointers to them can be flagged */
+  freedAddresses?: string[];
 }
 
-const StackVisualizer = ({ stack, theme = 'dark' }: StackVisualizerProps) => {
+const StackVisualizer = ({ stack, theme = 'dark', freedAddresses = [] }: StackVisualizerProps) => {
+  const freed = new Set(freedAddresses.map((a) => a.toLowerCase()));
   return (
     <div className="relative flex flex-col h-full">
       {/* Memory Addresses Gutter Decoration */}
@@ -84,8 +87,11 @@ const StackVisualizer = ({ stack, theme = 'dark' }: StackVisualizerProps) => {
                         
                         {/* Value display */}
                         <div 
+                          data-ptr-from={v.type === 'pointer' && v.value.startsWith('0x') ? v.value.toLowerCase() : undefined}
                           className={`flex-1 flex flex-col md:flex-row md:items-center md:justify-between px-2 md:px-3 py-1 md:py-1.5 rounded-md relative min-h-[32px] ${
-                            theme === 'dark' ? 'bg-black/40 border border-white/5 shadow-inner' : 'bg-white border border-black/5 shadow-inner'
+                            v.type === 'pointer' && freed.has(v.value.toLowerCase())
+                              ? (theme === 'dark' ? 'bg-red-950/40 border border-red-800' : 'bg-red-50 border border-red-300')
+                              : theme === 'dark' ? 'bg-black/40 border border-white/5 shadow-inner' : 'bg-white border border-black/5 shadow-inner'
                           }`} 
                         >
                           {v.value.startsWith('{') ? (
@@ -101,9 +107,11 @@ const StackVisualizer = ({ stack, theme = 'dark' }: StackVisualizerProps) => {
                               >
                                 {v.value}
                               </span>
-                              {v.type === 'pointer' && (
+                              {v.type === 'pointer' && freed.has(v.value.toLowerCase()) ? (
+                                <span className="text-[10px] font-semibold text-red-600">freed &#x2715;</span>
+                              ) : v.type === 'pointer' ? (
                                 <Zap size={10} className="text-emerald-500/40 animate-pulse" />
-                              )}
+                              ) : null}
                             </>
                           )}
                         </div>

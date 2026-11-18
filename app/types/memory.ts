@@ -23,6 +23,8 @@ export interface HeapObject {
   color: string;
   address: string;
   value: string;
+  /** true once free() has run on this block; it stays on screen as a freed block */
+  freed?: boolean;
 }
 
 export interface PointerLink {

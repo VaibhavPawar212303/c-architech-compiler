@@ -3,6 +3,22 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { StackFrame, HeapObject, LoopState } from '../types/memory';
 
+interface Snapshot {
+  stack: StackFrame[];
+  heap: HeapObject[];
+  globals: any[];
+  currentLine: number;
+  history: string[];
+  loopStack: LoopState[];
+  structDefs: Record<string, any>;
+  returnStack: { line: number; swallowed: number; targetVar?: string }[];
+  swallowedLines: number;
+  errors: { line: number; message: string }[];
+  finished: boolean;
+}
+
+const MAX_SNAPSHOTS = 500;
+
 export function useCompiler(initialCode: string) {
   const [stack, setStack] = useState<StackFrame[]>([]);
   const [heap, setHeap] = useState<HeapObject[]>([]);
@@ -21,6 +37,11 @@ export function useCompiler(initialCode: string) {
   const [returnStack, setReturnStack] = useState<{line: number, swallowed: number, targetVar?: string}[]>([]);
   const [swallowedLines, setSwallowedLines] = useState(1);
   const [errors, setErrors] = useState<{ line: number, message: string }[]>([]);
+  // Time travel: `past` holds the states before the current one, `future` the states after it
+  // (only non-empty after stepping back). `finished` is true once main() has ended.
+  const [finished, setFinished] = useState(false);
+  const [past, setPast] = useState<Snapshot[]>([]);
+  const [future, setFuture] = useState<Snapshot[]>([]);
 
   const logEndRef = useRef<HTMLDivElement>(null);
   const stepTimerRef = useRef<NodeJS.Timeout|null>(null);
@@ -74,6 +95,9 @@ export function useCompiler(initialCode: string) {
     setReturnStack([]);
     setLoopStack([]);
     setStructDefs({});
+    setFinished(false);
+    setPast([]);
+    setFuture([]);
     
     const lines = code.split('\n');
     let mainIdx = -1;
@@ -85,6 +109,18 @@ export function useCompiler(initialCode: string) {
         
         // Match struct definition
         if (line.startsWith('struct') && line.includes('{')) {
+          // One-line definition, e.g. `struct P { int x; int y; };` - parse the fields in place.
+          // (Without this the scan below would skip ahead and swallow main().)
+          const inlineDef = line.match(/^struct\s+(\w+)\s*\{([^}]*)\}\s*;?$/);
+          if (inlineDef) {
+            const inlineFields: {name: string, type: string}[] = [];
+            inlineDef[2].split(';').forEach(part => {
+              const m = part.trim().match(/^(int|char|float|double|struct\s+\w+)\s+(\w+)$/);
+              if (m) inlineFields.push({ type: m[1], name: m[2] });
+            });
+            localStructDefs[inlineDef[1]] = inlineFields;
+            continue;
+          }
           const nameMatch = line.match(/struct\s+(\w+)\s*\{/);
           if (nameMatch) {
             const structName = nameMatch[1];
@@ -439,11 +475,11 @@ export function useCompiler(initialCode: string) {
     }
   }, [stack, heap, globals]);
 
-  const stepCode = useCallback(() => {
+  const stepCodeCore = useCallback(() => {
     try {
       if (currentLine === -1) { resetCompiler(); return; }
       const lines = code.split('\n');
-      if (currentLine >= lines.length) { setIsAutoStepping(false); logMessage("EXECUTION_COMPLETE: Kernel gracefully exited."); return; }
+      if (currentLine >= lines.length) { setIsAutoStepping(false); setFinished(true); return; }
 
       let statement = "", swallowed = 0, i = currentLine, parenDepth = 0, bracketDepth = 0;
       while (i < lines.length) {
@@ -512,9 +548,9 @@ export function useCompiler(initialCode: string) {
             // Only terminate main if we are at the very end of code OR this is specifically the last closing brace
             const isEndOfMain = currentLine >= lines.length - 1 || !lines.slice(currentLine + 1).some(l => l.trim().length > 0 && !l.trim().startsWith('//'));
             if (isEndOfMain) {
-              popFrame(); 
-              setCurrentLine(lines.length); 
-              logMessage("TERMINATE: End of scope reached. Execution halted."); 
+              setFinished(true);
+              setCurrentLine(lines.length);
+              logMessage("TERMINATE: Program finished. The stack and heap are shown as they were at the end."); 
               return; 
             } else {
               // Just a block closing brace, step over it
@@ -721,15 +757,16 @@ export function useCompiler(initialCode: string) {
           const fMatch = line.match(/free\s*\(([^)]+)\)/);
           if (fMatch) {
             const ptrName = fMatch[1], addr = evaluateExpression(ptrName);
-            setHeap(prev => prev.filter(h => h.address !== addr));
+            setHeap(prev => prev.map(h => h.address === addr ? { ...h, freed: true } : h));
             logMessage(`FREE: Deallocated memory at ${addr}. Potential dangling pointers!`);
           }
         }
-      } else if (line.startsWith('int ') || line.startsWith('char ') || line.startsWith('float ') || line.startsWith('double ') || (line.startsWith('struct ') && !line.includes('{'))) {
+      } else if (line.startsWith('int ') || line.startsWith('char ') || line.startsWith('float ') || line.startsWith('double ') || (line.startsWith('struct ') && (!line.includes('{') || /^struct\s+\w+\s+\**\w+\s*=\s*\{/.test(line)))) {
         const typeMatch = line.match(/^(int|char|float|double|struct\s+\w+)\s+(.*)/);
         if (typeMatch) {
           const type = typeMatch[1], rest = typeMatch[2].replace(/;$/, '').trim();
-          rest.split(',').forEach(part => {
+          // A brace initializer like `{1, 2}` contains commas, so don't split declarations that have one.
+          (rest.includes('{') ? [rest] : rest.split(',')).forEach(part => {
              const vMatch = part.trim().match(/^(\**\w+)(?:\[(\d+)\])?(?:\s*=\s*(.*))?$/);
              if (vMatch) {
                 const nameRest = vMatch[1], arrSize = vMatch[2], initial = vMatch[3];
@@ -737,7 +774,39 @@ export function useCompiler(initialCode: string) {
                 const name = nameRest.replace(/\*/g, '').trim();
                 
                 let initialValue = '0';
-                if (initial) {
+                const mallocInit = initial ? initial.trim().match(/^(?:\([^)]*\)\s*)?malloc\s*\((.*)\)$/) : null;
+                const structInit = initial && type.startsWith('struct') && !isPointer ? initial.trim().match(/^\{(.*)\}$/) : null;
+                if (mallocInit && isPointer && !arrSize) {
+                  // `type *p = malloc(...)`: allocate a heap block and make p point to it.
+                  const sizeArg = mallocInit[1].trim();
+                  let size = parseInt(evaluateExpression(sizeArg));
+                  if (!Number.isFinite(size)) {
+                    const sm = sizeArg.match(/sizeof\s*\(\s*struct\s+(\w+)\s*\)/);
+                    size = sm ? Math.max((structDefs[sm[1]] || []).length, 1) * 4 : 4;
+                  }
+                  const address = `0x${(0x1000 + heap.length * 0x100).toString(16).toUpperCase()}`;
+                  setHeap(prev => [...prev, {
+                    id: Math.random().toString(),
+                    address,
+                    value: '0',
+                    size,
+                    name: `heap_${address}`,
+                    type: 'struct',
+                    color: '#10b981'
+                  }]);
+                  updateOrAddVariable(name, address, 'pointer');
+                  logMessage(`MALLOC: Allocated ${size} bytes at ${address} on the HEAP.`);
+                  return;
+                }
+                if (structInit) {
+                  // `struct P a = {1, 2};` - map the values onto the struct's fields in order.
+                  const fields = structDefs[type.replace('struct', '').trim()] || [];
+                  const values = structInit[1].split(',').map(v => v.trim()).filter(v => v.length > 0);
+                  const parts2 = fields
+                    .filter(f => !f.type.startsWith('struct'))
+                    .map((f, idx) => `.${f.name}: ${values[idx] !== undefined ? evaluateExpression(values[idx]) : '0'}`);
+                  initialValue = '{' + parts2.join(', ') + '}';
+                } else if (initial) {
                   initialValue = evaluateExpression(initial);
                 } else if (type.startsWith('struct')) {
                   const structName = type.replace('struct', '').trim();
@@ -816,14 +885,72 @@ export function useCompiler(initialCode: string) {
     }
   }, [code, currentLine, stack, heap, globals, loopStack, returnStack, logMessage, evaluateExpression, pushFrame, popFrame, resetCompiler, updateOrAddVariable]);
 
+  // ---- time travel -------------------------------------------------------
+  const takeSnapshot = useCallback((): Snapshot => JSON.parse(JSON.stringify({
+    stack, heap, globals, currentLine, history, loopStack, structDefs, returnStack, swallowedLines, errors, finished
+  })), [stack, heap, globals, currentLine, history, loopStack, structDefs, returnStack, swallowedLines, errors, finished]);
+
+  const restoreSnapshot = useCallback((s: Snapshot) => {
+    const c: Snapshot = JSON.parse(JSON.stringify(s));
+    setStack(c.stack);
+    setHeap(c.heap);
+    setGlobals(c.globals);
+    setCurrentLine(c.currentLine);
+    setHistory(c.history);
+    setLoopStack(c.loopStack);
+    setStructDefs(c.structDefs);
+    setReturnStack(c.returnStack);
+    setSwallowedLines(c.swallowedLines);
+    setErrors(c.errors);
+    setFinished(c.finished);
+    setIsAutoStepping(false);
+    setIsAwaitingInput(false);
+    setInputTarget(null);
+    setUserInput("");
+  }, []);
+
+  // Jump to step k (0 = start of the recorded run). Works backwards and forwards.
+  const goToStep = useCallback((k: number) => {
+    const n = past.length;
+    const target = Math.max(0, Math.min(k, n + future.length));
+    if (target === n) return;
+    if (target < n) {
+      const toFuture = [...past.slice(target + 1), takeSnapshot()].reverse();
+      setFuture(f => [...f, ...toFuture]);
+      setPast(past.slice(0, target));
+      restoreSnapshot(past[target]);
+    } else {
+      const m = target - n;
+      const popped = future.slice(future.length - m).reverse(); // chronological order
+      setPast([...past, takeSnapshot(), ...popped.slice(0, -1)]);
+      setFuture(future.slice(0, future.length - m));
+      restoreSnapshot(popped[popped.length - 1]);
+    }
+  }, [past, future, takeSnapshot, restoreSnapshot]);
+
+  const lineCount = code.split('\n').length;
+  const canStepForward = future.length > 0 || !(finished || (currentLine >= 0 && currentLine >= lineCount));
+
+  // One forward step. Replays recorded states first (after stepping back), then runs for real.
+  const stepForward = useCallback(() => {
+    if (future.length > 0) { goToStep(past.length + 1); return; }
+    if (currentLine === -1) { stepCodeCore(); return; } // first press only initialises the run
+    if (finished || currentLine >= lineCount) { setIsAutoStepping(false); return; }
+    setPast(p => [...p, takeSnapshot()].slice(-MAX_SNAPSHOTS));
+    stepCodeCore();
+  }, [future.length, past.length, goToStep, currentLine, finished, lineCount, takeSnapshot, stepCodeCore]);
+
+  const stepBack = useCallback(() => goToStep(past.length - 1), [goToStep, past.length]);
+  const lastLine = past.length > 0 ? past[past.length - 1].currentLine : -1;
+
   useEffect(() => {
     if (isAutoStepping && !isAwaitingInput) {
-      stepTimerRef.current = setTimeout(stepCode, 600);
+      stepTimerRef.current = setTimeout(stepForward, 600);
     } else if (stepTimerRef.current) {
       clearTimeout(stepTimerRef.current);
     }
     return () => { if (stepTimerRef.current) clearTimeout(stepTimerRef.current); };
-  }, [isAutoStepping, isAwaitingInput, stepCode]);
+  }, [isAutoStepping, isAwaitingInput, stepForward]);
 
   const handleInputSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -851,7 +978,9 @@ export function useCompiler(initialCode: string) {
 
   return {
     stack, heap, globals, code, setCode, currentLine, history, isAutoStepping, setIsAutoStepping,
-    isAwaitingInput, userInput, setUserInput, inputTarget, handleInputSubmit, runCode, stepCode,
+    isAwaitingInput, userInput, setUserInput, inputTarget, handleInputSubmit, runCode,
+    stepCode: stepForward, stepBack, goToStep, canStepForward,
+    stepIndex: past.length, totalSteps: past.length + future.length, finished, lastLine,
     resetCompiler, logEndRef, freeHeap
   };
 }

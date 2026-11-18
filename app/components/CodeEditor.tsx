@@ -8,6 +8,10 @@ interface CodeEditorProps {
   code: string;
   setCode: (code: string) => void;
   currentLine: number;
+  /** line that ran in the previous step (shown with a green check) */
+  lastLine?: number;
+  /** program has ended: no "next line" is shown */
+  finished?: boolean;
   theme?: 'dark' | 'light';
   errors?: { line: number, message: string }[];
 }
@@ -16,6 +20,8 @@ const CodeEditor = ({
   code,
   setCode,
   currentLine,
+  lastLine = -1,
+  finished = false,
   theme = 'dark',
   errors = []
 }: CodeEditorProps) => {
@@ -310,6 +316,12 @@ const CodeEditor = ({
                 }`}
               >
                 <span className="text-[10px]">{i + 1}</span>
+                {i === lastLine && !(i === currentLine && !finished) && (
+                  <span className="absolute left-1 text-[11px] font-bold text-emerald-400" title="Just ran">&#10003;</span>
+                )}
+                {i === currentLine && !finished && (
+                  <span className="absolute left-1 text-[10px] text-blue-400" title="Next line">&#9654;</span>
+                )}
                 {error && (
                   <div className="absolute left-1">
                     <AlertCircle size={10} className="text-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
@@ -351,7 +363,18 @@ const CodeEditor = ({
           />
 
           {/* Execution Highlight (Synced manually or via absolute in scrollable) */}
-          {currentLine >= 0 && (
+          {lastLine >= 0 && (
+            <div
+              className="absolute left-0 right-0 h-[24px] pointer-events-none z-0 bg-emerald-500/10 border-y border-emerald-500/20 transition-all duration-300"
+              style={{
+                top: lastLine * 24 + 24 - scrollPos.top,
+                opacity: (lastLine * 24 + 24 - scrollPos.top) < 0 ? 0 : 1
+              }}
+            >
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-400" />
+            </div>
+          )}
+          {currentLine >= 0 && !finished && (
             <div 
               className={`absolute left-0 right-0 h-[24px] pointer-events-none z-0 border-y transition-all duration-300 ${
                 theme === 'dark' ? 'bg-blue-500/10 border-blue-500/20' : 'bg-blue-500/5 border-blue-500/10'
@@ -377,7 +400,7 @@ const CodeEditor = ({
             Live
           </span>
           <div className="h-3 w-px bg-white/10" />
-          <span className="tracking-widest uppercase opacity-40">Line {currentLine + 1}</span>
+          <span className="opacity-60">{finished ? 'Finished' : currentLine >= 0 ? `Next: line ${currentLine + 1}` : 'Not started'}</span>
           <span className="tracking-widest uppercase opacity-40">GCC 11</span>
           {errors.length > 0 && (
             <span className="text-red-500 font-black animate-pulse flex items-center gap-1">
