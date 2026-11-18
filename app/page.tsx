@@ -85,6 +85,10 @@ const fromShareParam = (param: string) => {
   const bin = atob(param.replace(/-/g, '+').replace(/_/g, '/'));
   return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
 };
+// Editor width: starts at 700px and can be set anywhere from 320px up to 800px, in 60px steps.
+const DEFAULT_EDITOR_WIDTH = 700;
+const MIN_EDITOR_WIDTH = 320;
+const MAX_EDITOR_WIDTH = 800;
 const MY_CODE_KEY = 'kernel_trace_my_code'; // the user's own program, saved when they switch to an example
 const MAX_SHARE_PARAM = 8000; // keep share URLs within what browsers and chat apps accept
 
@@ -96,7 +100,7 @@ function MemoryArchitectContent() {
   const [mainTab, setMainTab] = useState<'compiler' | 'dsa' | 'revision' | 'learning'>('compiler');
   const [compilerTab, setCompilerTab] = useState<'visualizer' | 'theory'>('visualizer');
   const [selectedLearningChapter, setSelectedLearningChapter] = useState<number | null>(null);
-  const [editorWidth, setEditorWidth] = useState<number>(460);
+  const [editorWidth, setEditorWidth] = useState<number>(DEFAULT_EDITOR_WIDTH);
   
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -147,10 +151,10 @@ function MemoryArchitectContent() {
     }
 
     // 4. Sync editor width from localStorage
-    const savedWidth = localStorage.getItem('kernel_trace_editor_width');
+    const savedWidth = localStorage.getItem('kernel_trace_editor_width_v2');
     if (savedWidth) {
       const parsed = parseInt(savedWidth, 10);
-      if (!isNaN(parsed) && parsed >= 300 && parsed <= 900) {
+      if (!isNaN(parsed) && parsed >= MIN_EDITOR_WIDTH && parsed <= MAX_EDITOR_WIDTH) {
         setEditorWidth(parsed);
       }
     }
@@ -162,7 +166,7 @@ function MemoryArchitectContent() {
   // Persist editor width changes
   useEffect(() => {
     if (isMounted) {
-      localStorage.setItem('kernel_trace_editor_width', editorWidth.toString());
+      localStorage.setItem('kernel_trace_editor_width_v2', editorWidth.toString());
     }
   }, [editorWidth, isMounted]);
 
@@ -370,12 +374,12 @@ function MemoryArchitectContent() {
           </div>
         )}
 
-        <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 md:px-8 md:pb-8 overflow-hidden min-h-0">
+        <div className="flex-1 flex flex-col lg:flex-row gap-4 p-4 md:px-8 md:pb-8 overflow-y-auto lg:overflow-hidden min-h-0">
           {/* EDITOR CARD */}
           {showEditor && (
             <section
               style={{ '--editor-width': `${editorWidth}px` } as React.CSSProperties}
-              className="w-full lg:w-[var(--editor-width)] lg:min-w-[300px] lg:max-w-4xl flex flex-col rounded-2xl overflow-hidden bg-slate-900 text-slate-200 border border-slate-800 shadow-lg flex-shrink-0 min-h-[360px] lg:min-h-0"
+              className="w-full lg:w-[min(var(--editor-width),55vw)] lg:min-w-[300px] flex flex-col rounded-2xl overflow-hidden bg-slate-900 text-slate-200 border border-slate-800 shadow-lg flex-shrink-0 min-h-[360px] lg:min-h-0"
             >
               <div className="px-4 py-3 bg-slate-800/60 border-b border-slate-800 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
@@ -391,8 +395,8 @@ function MemoryArchitectContent() {
                 {/* Editor width adjuster */}
                 <div className="hidden lg:flex items-center gap-0.5 rounded-lg p-0.5 bg-slate-900 border border-slate-700 text-slate-300">
                   <button
-                    onClick={() => setEditorWidth((prev) => Math.max(prev - 60, 320))}
-                    disabled={editorWidth <= 320}
+                    onClick={() => setEditorWidth((prev) => Math.max(prev - 60, MIN_EDITOR_WIDTH))}
+                    disabled={editorWidth <= MIN_EDITOR_WIDTH}
                     title="Narrower editor"
                     className="p-1 rounded hover:bg-slate-700 disabled:opacity-20 transition-colors"
                   >
@@ -400,8 +404,8 @@ function MemoryArchitectContent() {
                   </button>
                   <span className="text-[10px] font-mono px-1 min-w-[40px] text-center">{editorWidth}px</span>
                   <button
-                    onClick={() => setEditorWidth((prev) => Math.min(prev + 60, 800))}
-                    disabled={editorWidth >= 800}
+                    onClick={() => setEditorWidth((prev) => Math.min(prev + 60, MAX_EDITOR_WIDTH))}
+                    disabled={editorWidth >= MAX_EDITOR_WIDTH}
                     title="Wider editor"
                     className="p-1 rounded hover:bg-slate-700 disabled:opacity-20 transition-colors"
                   >
@@ -455,7 +459,7 @@ function MemoryArchitectContent() {
             </section>
           )}
 
-          <div className={`flex-1 flex flex-col min-w-0 overflow-hidden ${showEditor ? '' : '-mx-4 md:-mx-8 -mb-4 md:-mb-8'}`}>
+          <div className={`flex-1 flex flex-col min-w-0 overflow-hidden min-h-[560px] lg:min-h-0 ${showEditor ? '' : '-mx-4 md:-mx-8 -mb-4 md:-mb-8'}`}>
             {mainTab === 'compiler' ? (
               <CompilerCore
                 theme={theme}

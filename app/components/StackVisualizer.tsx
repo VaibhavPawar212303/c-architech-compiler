@@ -15,7 +15,7 @@ interface StackVisualizerProps {
 const StackVisualizer = ({ stack, theme = 'dark', freedAddresses = [] }: StackVisualizerProps) => {
   const freed = new Set(freedAddresses.map((a) => a.toLowerCase()));
   return (
-    <div className="relative flex flex-col h-full">
+    <div className="@container relative flex flex-col h-full">
       {/* Memory Addresses Gutter Decoration */}
       <div className={`absolute left-0 top-0 bottom-0 w-1 ${
         theme === 'dark' ? 'bg-blue-500/20' : 'bg-blue-600/20'
@@ -66,12 +66,12 @@ const StackVisualizer = ({ stack, theme = 'dark', freedAddresses = [] }: StackVi
                       className="group/var relative"
                     >
                       <div 
-                        className={`flex items-center gap-2 md:gap-4 p-2 md:p-3 rounded-lg transition-all ${
+                        className={`flex flex-col @md:flex-row @md:items-center gap-1.5 @md:gap-4 p-2 @md:p-3 rounded-lg transition-all ${
                           theme === 'dark' ? 'hover:bg-white/[0.02]' : 'hover:bg-slate-50'
                         }`}
                       >
                         {/* Var Identification */}
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 shrink-0 sm:min-w-[160px]">
+                        <div className="flex flex-row items-center gap-3 @md:gap-4 shrink-0 @md:min-w-[160px]">
                           <div className="w-[50px] md:w-[80px] shrink-0">
                             <code className={`text-[8px] md:text-[9px] font-mono block ${theme === 'dark' ? 'text-blue-400/60' : 'text-blue-600/60'}`}>
                               {v.address.toUpperCase()}
@@ -88,7 +88,7 @@ const StackVisualizer = ({ stack, theme = 'dark', freedAddresses = [] }: StackVi
                         {/* Value display */}
                         <div 
                           data-ptr-from={v.type === 'pointer' && v.value.startsWith('0x') ? v.value.toLowerCase() : undefined}
-                          className={`flex-1 flex flex-col md:flex-row md:items-center md:justify-between px-2 md:px-3 py-1 md:py-1.5 rounded-md relative min-h-[32px] ${
+                          className={`flex-1 min-w-0 w-full @md:w-auto flex flex-row items-center justify-between gap-2 px-3 py-1.5 rounded-md relative min-h-[32px] ${
                             v.type === 'pointer' && freed.has(v.value.toLowerCase())
                               ? (theme === 'dark' ? 'bg-red-950/40 border border-red-800' : 'bg-red-50 border border-red-300')
                               : theme === 'dark' ? 'bg-black/40 border border-white/5 shadow-inner' : 'bg-white border border-black/5 shadow-inner'

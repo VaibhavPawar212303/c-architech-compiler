@@ -15,14 +15,14 @@ interface HeapVisualizerProps {
 
 const HeapVisualizer = ({ heap, freeHeap, theme = 'dark', finished = false }: HeapVisualizerProps) => {
   return (
-    <div className="relative flex flex-col h-full">
+    <div className="@container relative flex flex-col h-full">
       {/* Memory Decoration */}
       <div className={`absolute left-0 top-0 bottom-0 w-1 ${
         theme === 'dark' ? 'bg-emerald-500/20' : 'bg-emerald-600/20'
       } z-10`} />
 
       <div className="flex-1 p-3 md:p-6 flex flex-col gap-4 md:gap-6 relative z-10 overflow-y-auto overflow-x-auto custom-scrollbar min-h-0">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 @lg:grid-cols-2 gap-4">
           <AnimatePresence>
               {heap.map((obj, blockIndex) => (
                 <motion.div
