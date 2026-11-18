@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Workflow, BookOpen, Zap, Network, Moon, Sun, Menu, X, ArrowLeft } from 'lucide-react';
+import Logo from './Logo';
 
 type MainTab = 'compiler' | 'dsa' | 'revision' | 'learning';
 
@@ -60,10 +61,7 @@ export default function TopNavigation({ theme, setTheme, mainTab, setMainTab, en
     >
       {/* Brand */}
       <a href={DAPPLED_URL} className="flex items-center gap-3 shrink-0" aria-label="Thedappled home">
-        <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-base font-bold ${dark ? 'bg-white text-slate-900' : 'bg-slate-900 text-white'}`}>
-          D
-        </span>
-        <span className={`text-xl font-bold tracking-tight ${dark ? 'text-white' : 'text-slate-900'}`}>Thedappled</span>
+        <Logo theme={theme} />
         <span className={`hidden sm:inline rounded-full px-3 py-1 text-xs font-semibold ${dark ? 'bg-blue-950 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>
           Compiler
         </span>
