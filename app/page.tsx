@@ -410,7 +410,7 @@ function MemoryArchitectContent() {
                 </div>
               </div>
 
-              <div className="flex-1 relative overflow-hidden min-h-0">
+              <div className="flex-1 flex flex-col relative overflow-hidden min-h-0">
                 {/* The code surface is always dark, like the Thedappled code blocks */}
                 <CodeEditor code={code} setCode={setCode} currentLine={currentLine} lastLine={lastLine} finished={finished} theme="dark" />
 
