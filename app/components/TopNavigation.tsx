@@ -30,12 +30,6 @@ const ACTIVE_TEXT_DARK: Record<string, string> = {
   green: 'text-emerald-400',
 };
 
-const siteLinks = [
-  { label: 'Courses', href: `${DAPPLED_URL}/search` },
-  { label: 'Books', href: `${DAPPLED_URL}/books` },
-  { label: 'Blogs', href: `${DAPPLED_URL}/blogs` },
-];
-
 export default function TopNavigation({ theme, setTheme, mainTab, setMainTab, enableBeta = false }: TopNavigationProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const dark = theme === 'dark';
@@ -89,16 +83,8 @@ export default function TopNavigation({ theme, setTheme, mainTab, setMainTab, en
         })}
       </nav>
 
-      {/* Site links + actions */}
+      {/* Actions */}
       <div className="flex items-center gap-2 md:gap-4">
-        <div className="hidden xl:flex items-center gap-5 mr-2">
-          {siteLinks.map((l) => (
-            <a key={l.label} href={l.href} className={`text-sm font-medium transition-colors ${dark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}>
-              {l.label}
-            </a>
-          ))}
-        </div>
-
         <button
           onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
           aria-label="Toggle theme"
@@ -153,10 +139,7 @@ export default function TopNavigation({ theme, setTheme, mainTab, setMainTab, en
                   {item.label}
                 </button>
               ))}
-              <div className={`pt-2 mt-2 border-t grid grid-cols-2 gap-1 ${dark ? 'border-slate-800' : 'border-slate-200'}`}>
-                {siteLinks.map((l) => (
-                  <a key={l.label} href={l.href} className={`px-4 py-2 text-sm ${dark ? 'text-slate-400' : 'text-slate-600'}`}>{l.label}</a>
-                ))}
+              <div className={`pt-2 mt-2 border-t ${dark ? 'border-slate-800' : 'border-slate-200'}`}>
                 <a href={DAPPLED_URL} className="px-4 py-2 text-sm font-semibold text-blue-600">← Back to Thedappled</a>
               </div>
             </div>
