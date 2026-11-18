@@ -2,138 +2,165 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Cpu, 
-  Workflow, 
-  Network, 
-  BookOpen, 
-  Zap, 
-  Moon, 
-  Sun,
-  Menu,
-  X
-} from 'lucide-react';
+import { Workflow, BookOpen, Zap, Network, Moon, Sun, Menu, X, ArrowLeft } from 'lucide-react';
+
+type MainTab = 'compiler' | 'dsa' | 'revision' | 'learning';
 
 interface TopNavigationProps {
   theme: 'dark' | 'light';
   setTheme: React.Dispatch<React.SetStateAction<'dark' | 'light'>>;
-  mainTab: 'compiler' | 'dsa' | 'revision' | 'learning';
-  setMainTab: (tab: 'compiler' | 'dsa' | 'revision' | 'learning') => void;
+  mainTab: MainTab;
+  setMainTab: (tab: MainTab) => void;
   enableBeta?: boolean;
 }
 
-export default function TopNavigation({ 
-  theme, 
-  setTheme, 
-  mainTab, 
-  setMainTab,
-  enableBeta = false
-}: TopNavigationProps) {
+// Main Thedappled site. Override with NEXT_PUBLIC_DAPPLED_URL for previews.
+const DAPPLED_URL = process.env.NEXT_PUBLIC_DAPPLED_URL || 'https://thedappled.com';
+
+// Static class maps (Tailwind can't see dynamically built class names).
+const ACTIVE_TEXT: Record<string, string> = {
+  blue: 'text-blue-600',
+  purple: 'text-purple-600',
+  green: 'text-emerald-600',
+};
+const ACTIVE_TEXT_DARK: Record<string, string> = {
+  blue: 'text-blue-400',
+  purple: 'text-purple-400',
+  green: 'text-emerald-400',
+};
+
+const siteLinks = [
+  { label: 'Courses', href: `${DAPPLED_URL}/search` },
+  { label: 'Books', href: `${DAPPLED_URL}/books` },
+  { label: 'Blogs', href: `${DAPPLED_URL}/blogs` },
+];
+
+export default function TopNavigation({ theme, setTheme, mainTab, setMainTab, enableBeta = false }: TopNavigationProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const dark = theme === 'dark';
+  const accent = (color: string) => (dark ? ACTIVE_TEXT_DARK[color] : ACTIVE_TEXT[color]);
 
   const navItems = [
-    { id: 'compiler', label: 'Compiler_Core', icon: Workflow, color: 'blue' },
-    { id: 'learning', label: 'Learning_Hub', icon: BookOpen, color: 'indigo' },
-    { id: 'revision', label: 'Revision_Lab', icon: Zap, color: 'amber' },
-    ...(enableBeta ? [{ id: 'dsa', label: 'World_Space', icon: Network, color: 'emerald' }] : [])
-  ];
+    { id: 'compiler', label: 'Compiler', icon: Workflow, color: 'blue' },
+    { id: 'learning', label: 'Learning Path', icon: BookOpen, color: 'purple' },
+    { id: 'revision', label: 'Revision Lab', icon: Zap, color: 'green' },
+    ...(enableBeta ? [{ id: 'dsa', label: 'World Space', icon: Network, color: 'green' }] : []),
+  ] as { id: MainTab; label: string; icon: React.ElementType; color: string }[];
 
-  const handleTabSelect = (id: any) => {
+  const handleTabSelect = (id: MainTab) => {
     setMainTab(id);
     setIsMobileMenuOpen(false);
   };
 
   return (
-    <header className={`relative z-50 border-b px-4 md:px-8 py-4 md:py-5 flex items-center justify-between backdrop-blur-3xl transition-all ${
-      theme === 'dark' ? 'border-white/5 bg-black/60' : 'border-black/5 bg-white/70 shadow-sm'
-    }`}>
-      <div className="flex items-center gap-4 md:gap-10">
-        <div className="flex items-center gap-3 md:gap-5">
-          <div className={`w-10 h-10 md:w-12 md:h-12 flex items-center justify-center border-l-2 ${theme === 'dark' ? 'bg-blue-500/10 border-blue-500 text-blue-400' : 'bg-blue-600/10 border-blue-600 text-blue-600'}`}>
-            <Cpu size={20} className="md:w-6 md:h-6" strokeWidth={2.5} />
-          </div>
-          <div className="hidden sm:block">
-            <h1 className={`text-xl md:text-2xl font-black tracking-tighter uppercase leading-none ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-              Kernel_Trace <span className="text-[8px] md:text-[10px] font-mono text-blue-500 ml-1 md:ml-2 tracking-widest opacity-60">RUNTIME_ENV_V2</span>
-            </h1>
-            <p className="text-[8px] md:text-[9px] font-mono opacity-40 uppercase tracking-[0.2em] md:tracking-[0.4em] mt-1 md:mt-2">Physical Memory Allocation Visualizer</p>
-          </div>
-          <div className="sm:hidden">
-            <h1 className={`text-lg font-black tracking-tighter uppercase leading-none ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-              Kernel_Trace
-            </h1>
-          </div>
-        </div>
+    <header
+      className={`relative z-50 h-[72px] border-b px-4 md:px-8 flex items-center justify-between ${
+        dark ? 'border-slate-800 bg-slate-950' : 'border-slate-200 bg-white'
+      }`}
+    >
+      {/* Brand */}
+      <a href={DAPPLED_URL} className="flex items-center gap-3 shrink-0" aria-label="Thedappled home">
+        <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-base font-bold ${dark ? 'bg-white text-slate-900' : 'bg-slate-900 text-white'}`}>
+          D
+        </span>
+        <span className={`text-xl font-bold tracking-tight ${dark ? 'text-white' : 'text-slate-900'}`}>Thedappled</span>
+        <span className={`hidden sm:inline rounded-full px-3 py-1 text-xs font-semibold ${dark ? 'bg-blue-950 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>
+          Compiler
+        </span>
+      </a>
 
-        <nav className="hidden lg:flex items-center gap-2 border-l border-white/5 pl-10 h-10">
-          {navItems.map((item) => (
-            <button 
+      {/* Segmented tabs */}
+      <nav className={`hidden lg:flex items-center gap-1 rounded-xl p-1 ${dark ? 'bg-slate-900' : 'bg-slate-100'}`}>
+        {navItems.map((item) => {
+          const active = mainTab === item.id;
+          return (
+            <button
               key={item.id}
-              onClick={() => setMainTab(item.id as any)}
-              className={`px-4 md:px-6 h-full text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex items-center gap-2 group ${
-                mainTab === item.id 
-                  ? (theme === 'dark' ? `text-${item.color}-400` : `text-${item.color}-600`) 
-                  : (theme === 'dark' ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600')
+              onClick={() => setMainTab(item.id)}
+              className={`px-5 h-8 rounded-lg text-[13px] font-medium transition-colors ${
+                active
+                  ? `border font-semibold ${dark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'} ${accent(item.color)}`
+                  : dark
+                    ? 'text-slate-400 hover:text-slate-200'
+                    : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              <item.icon size={14} className="group-hover:rotate-12 transition-transform" />
               {item.label}
-              {mainTab === item.id && (
-                <motion.div layoutId="navIndicator" className={`absolute -bottom-[21px] left-0 right-0 h-[2px] bg-${item.color}-500`} />
-              )}
             </button>
-          ))}
-        </nav>
-      </div>
+          );
+        })}
+      </nav>
 
+      {/* Site links + actions */}
       <div className="flex items-center gap-2 md:gap-4">
-        <button 
-           onClick={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}
-           className={`p-2 rounded-none border transition-all hover:bg-opacity-80 active:scale-95 ${
-             theme === 'dark' 
-               ? 'border-white/10 text-yellow-500 bg-white/5' 
-               : 'border-black/10 text-orange-600 bg-slate-50 shadow-sm'
-           }`}
-        >
-          {theme === 'dark' ? <Sun size={18} className="md:w-5 md:h-5" /> : <Moon size={18} className="md:w-5 md:h-5" />}
-        </button>
+        <div className="hidden xl:flex items-center gap-5 mr-2">
+          {siteLinks.map((l) => (
+            <a key={l.label} href={l.href} className={`text-sm font-medium transition-colors ${dark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'}`}>
+              {l.label}
+            </a>
+          ))}
+        </div>
 
-        <button 
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className={`lg:hidden p-2 border transition-all ${
-            theme === 'dark' ? 'border-white/10 bg-white/5 text-white' : 'border-black/10 bg-black/5 text-slate-900'
+        <button
+          onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
+          aria-label="Toggle theme"
+          className={`h-9 w-9 flex items-center justify-center rounded-[10px] border transition-colors ${
+            dark ? 'border-slate-800 text-yellow-400 hover:bg-slate-900' : 'border-slate-200 text-slate-500 hover:bg-slate-50'
           }`}
         >
-          {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+          {dark ? <Sun size={16} /> : <Moon size={16} />}
+        </button>
+
+        <a
+          href={DAPPLED_URL}
+          className={`hidden md:inline-flex items-center gap-2 h-10 px-4 rounded-lg border text-xs font-semibold transition-colors ${
+            dark ? 'border-slate-700 text-slate-200 hover:bg-slate-900' : 'border-slate-200 text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <ArrowLeft size={14} /> Back to Thedappled
+        </a>
+
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label="Menu"
+          className={`lg:hidden h-9 w-9 flex items-center justify-center rounded-[10px] border ${
+            dark ? 'border-slate-800 text-white' : 'border-slate-200 text-slate-900'
+          }`}
+        >
+          {isMobileMenuOpen ? <X size={16} /> : <Menu size={16} />}
         </button>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
+          <motion.div
+            initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className={`absolute top-full left-0 right-0 border-b lg:hidden z-50 ${
-              theme === 'dark' ? 'bg-[#0f0f10] border-white/10 shadow-2xl' : 'bg-white border-black/10 shadow-xl'
-            }`}
+            exit={{ opacity: 0, y: -12 }}
+            className={`absolute top-full left-0 right-0 border-b lg:hidden z-50 shadow-xl ${dark ? 'bg-slate-950 border-slate-800' : 'bg-white border-slate-200'}`}
           >
-            <div className="p-4 space-y-2">
+            <div className="p-4 space-y-1">
               {navItems.map((item) => (
-                <button 
+                <button
                   key={item.id}
-                  onClick={() => handleTabSelect(item.id as any)}
-                  className={`w-full p-4 flex items-center gap-4 text-[11px] font-black uppercase tracking-[0.2em] transition-all border ${
-                    mainTab === item.id 
-                      ? (theme === 'dark' ? `bg-${item.color}-500/10 border-${item.color}-500/50 text-${item.color}-400` : `bg-${item.color}-50 border-${item.color}-200 text-${item.color}-600`) 
-                      : (theme === 'dark' ? 'border-transparent text-slate-500 hover:bg-white/5' : 'border-transparent text-slate-400 hover:bg-slate-50')
+                  onClick={() => handleTabSelect(item.id)}
+                  className={`w-full px-4 py-3 flex items-center gap-3 rounded-lg text-sm font-medium transition-colors ${
+                    mainTab === item.id
+                      ? `${dark ? 'bg-slate-900' : 'bg-slate-100'} ${accent(item.color)}`
+                      : dark ? 'text-slate-400 hover:bg-slate-900' : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
                   <item.icon size={16} />
-                  {item.label.replace('_', ' ')}
+                  {item.label}
                 </button>
               ))}
+              <div className={`pt-2 mt-2 border-t grid grid-cols-2 gap-1 ${dark ? 'border-slate-800' : 'border-slate-200'}`}>
+                {siteLinks.map((l) => (
+                  <a key={l.label} href={l.href} className={`px-4 py-2 text-sm ${dark ? 'text-slate-400' : 'text-slate-600'}`}>{l.label}</a>
+                ))}
+                <a href={DAPPLED_URL} className="px-4 py-2 text-sm font-semibold text-blue-600">← Back to Thedappled</a>
+              </div>
             </div>
           </motion.div>
         )}

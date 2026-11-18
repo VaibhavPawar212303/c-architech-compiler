@@ -85,7 +85,7 @@ const HeapVisualizer = ({ heap, freeHeap, theme = 'dark' }: HeapVisualizerProps)
             {heap.length === 0 && (
               <div className="col-span-1 md:col-span-2 py-12 flex flex-col items-center justify-center opacity-10">
                 <Database size={32} className="mb-2" />
-                <p className="text-[8px] font-black uppercase tracking-[0.4em]">Heap_Pool_Available</p>
+                <p className="text-[8px] font-black uppercase tracking-[0.4em]">No heap allocations</p>
               </div>
             )}
           </div>

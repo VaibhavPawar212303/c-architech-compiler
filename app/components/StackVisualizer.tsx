@@ -43,7 +43,7 @@ const StackVisualizer = ({ stack, theme = 'dark' }: StackVisualizerProps) => {
                       <h4 className={`text-[10px] font-black uppercase tracking-widest ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
                         {frame.functionName}()
                       </h4>
-                      <p className="text-[7px] font-mono opacity-40 uppercase tracking-tighter">Stack_Memory_Block</p>
+                      <p className="text-[7px] font-mono opacity-40 uppercase tracking-tighter">Stack frame</p>
                     </div>
                   </div>
                   <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 rounded border ${
@@ -117,7 +117,7 @@ const StackVisualizer = ({ stack, theme = 'dark' }: StackVisualizerProps) => {
           {stack.length === 0 && (
             <div className="py-12 flex flex-col items-center justify-center opacity-10">
               <Layers size={32} className="mb-2" />
-              <p className="text-[8px] font-black uppercase tracking-[0.4em]">Stack_Buffer_Empty</p>
+              <p className="text-[8px] font-black uppercase tracking-[0.4em]">Stack is empty</p>
             </div>
           )}
         </div>

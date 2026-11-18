@@ -251,7 +251,7 @@ const CodeEditor = ({
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-blue-500/10 border border-blue-500/20">
             <Zap size={12} className="text-blue-400" />
-            <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Editor_Active</span>
+            <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Editor</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -283,7 +283,7 @@ const CodeEditor = ({
             title="Auto-format code (experimental)"
           >
             <div className="w-1 h-1 rounded-full bg-emerald-400" />
-            Format_Auto
+            Format
           </button>
         </div>
       </div>
@@ -374,19 +374,19 @@ const CodeEditor = ({
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1.5 font-bold tracking-tight text-blue-400">
             <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)] animate-pulse" />
-            LIVE_COMPILER_V2
+            Live
           </span>
           <div className="h-3 w-px bg-white/10" />
           <span className="tracking-widest uppercase opacity-40">Line {currentLine + 1}</span>
-          <span className="tracking-widest uppercase opacity-40">C_GCC_11</span>
+          <span className="tracking-widest uppercase opacity-40">GCC 11</span>
           {errors.length > 0 && (
             <span className="text-red-500 font-black animate-pulse flex items-center gap-1">
-              <AlertCircle size={10} /> {errors.length} ERRORS_FOUND
+              <AlertCircle size={10} /> {errors.length} errors
             </span>
           )}
         </div>
         <div className="flex items-center gap-3">
-          <span className="opacity-30 uppercase tracking-[0.2em] font-mono">ANSI_C_ENABLED</span>
+          <span className="opacity-30 uppercase tracking-[0.2em] font-mono">ANSI C</span>
         </div>
       </div>
     </section>
