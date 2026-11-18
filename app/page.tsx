@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Play, RotateCcw, Pause, Terminal, ChevronLeft, ChevronRight, SkipBack, Link2, Check } from 'lucide-react';
 import TopNavigation from './components/TopNavigation';
+import ExamplePicker, { ExampleProgram } from './components/ExamplePicker';
 import CompilerCore from './components/CompilerCore';
 import DSAWorld from './components/DSAWorld';
 import CodeEditor from './components/CodeEditor';
@@ -84,6 +85,7 @@ const fromShareParam = (param: string) => {
   const bin = atob(param.replace(/-/g, '+').replace(/_/g, '/'));
   return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
 };
+const MY_CODE_KEY = 'kernel_trace_my_code'; // the user's own program, saved when they switch to an example
 const MAX_SHARE_PARAM = 8000; // keep share URLs within what browsers and chat apps accept
 
 const ENABLE_BETA = process.env.NEXT_PUBLIC_ENABLE_BETA_FEATURES === 'true';
@@ -107,6 +109,7 @@ function MemoryArchitectContent() {
     resetCompiler, logEndRef, freeHeap
   } = useCompiler(INITIAL_CODE);
   const [shareState, setShareState] = useState<'idle' | 'copied' | 'toolong' | 'error'>('idle');
+  const [hasStash, setHasStash] = useState(false);
 
   // Sync state with local storage and URL
   useEffect(() => {
@@ -152,6 +155,7 @@ function MemoryArchitectContent() {
       }
     }
 
+    try { setHasStash(!!localStorage.getItem(MY_CODE_KEY)); } catch { /* storage unavailable */ }
     setIsMounted(true);
   }, []); // Run only once on mount
 
@@ -231,6 +235,10 @@ function MemoryArchitectContent() {
   if (!isMounted) return null;
 
   const handleSelectProgram = (newCode: string, revId?: string) => {
+    // Leaving the user's own code for an example: keep a copy so "My code" can bring it back.
+    if (revId && !searchParams.get('rev')) {
+      try { localStorage.setItem(MY_CODE_KEY, code); setHasStash(true); } catch { /* storage unavailable */ }
+    }
     setCode(newCode);
     const params = new URLSearchParams(searchParams.toString());
     params.set('tab', 'compiler');
@@ -273,24 +281,18 @@ function MemoryArchitectContent() {
               <p className={`text-xs ${muted}`}>Step through C code. ← → to step, Space to auto step.</p>
             </div>
 
-            <label className="flex items-center gap-2">
-              <span className="sr-only">Example program</span>
-              <select
-                value={currentRev}
-                onChange={(e) => {
-                  const program = revisionPrograms.find((p) => p.id === e.target.value);
-                  if (program) handleSelectProgram(program.code, program.id);
-                }}
-                className={`h-10 w-44 rounded-[10px] border px-3 text-sm font-medium outline-none focus:ring-2 focus:ring-blue-500/30 ${
-                  dark ? 'bg-slate-950 border-slate-700 text-slate-200' : 'bg-slate-50 border-slate-200 text-slate-900'
-                }`}
-              >
-                <option value="" disabled={!!currentRev}>{currentRev ? 'Choose an example' : 'My code'}</option>
-                {revisionPrograms.map((p) => (
-                  <option key={p.id} value={p.id}>{p.title}</option>
-                ))}
-              </select>
-            </label>
+            <ExamplePicker
+              theme={theme}
+              programs={revisionPrograms as ExampleProgram[]}
+              currentId={currentRev}
+              myCodeAvailable={hasStash}
+              onSelectExample={(program) => handleSelectProgram(program.code, program.id)}
+              onSelectMyCode={() => {
+                let saved: string | null = null;
+                try { saved = localStorage.getItem(MY_CODE_KEY); } catch { /* storage unavailable */ }
+                if (saved) handleSelectProgram(saved);
+              }}
+            />
 
             <div className={`flex flex-wrap items-center gap-1.5 rounded-xl p-1 max-w-full ${dark ? 'bg-slate-950' : 'bg-slate-100'}`}>
               <button
